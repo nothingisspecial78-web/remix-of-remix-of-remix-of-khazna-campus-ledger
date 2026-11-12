@@ -9,3 +9,10 @@ export function downloadCSV(filename: string, rows: (string | number)[][]) {
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+
+/** Minimal CSV parser for uploads (comma separated, optional quotes, header row first). */
+export function parseCSV(text: string) {
+  const lines = text.replace(/^\uFEFF/, "").trim().split(/\r?\n/).filter((l) => l.trim());
+  const split = (l: string) => l.split(",").map((c) => c.trim().replace(/^"|"$/g, ""));
+  return { headers: split(lines[0] ?? ""), rows: lines.slice(1).map(split) };
+}

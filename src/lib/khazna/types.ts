@@ -1,4 +1,5 @@
-export type SectorSlug = "office" | "ihsan-union" | "velitcham-welfare" | "dept-fiqh" | "dept-civil";
+/** Sector id — seeded demo sectors use fixed slugs; sectors a new college adds get generated ones. */
+export type SectorSlug = string;
 export type TxType = "credit" | "debit";
 export type Role = "admin" | "manager" | "student";
 
@@ -72,6 +73,8 @@ export type AuditAction =
   | "INVITE_ADMIN"
   | "UPDATE_SECTOR"
   | "UPDATE_PROFILE"
+  | "ADD_SECTOR"
+  | "SIGN_UP"
   | "EXPORT";
 
 export interface AuditEntry {

@@ -24,9 +24,13 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
-import { SUPER_ADMIN, managerNameFor } from "@/lib/khazna/data";
+import { toast } from "sonner";
+import type { Sector, Student } from "@/lib/khazna/types";
+
+const NO_STUDENT: Student = { id: "—", name: "Student", className: "—", phone: "", guardian: "—", joined: "" };
+const NO_SECTOR: Sector = { slug: "", name: "No sector yet", short: "—", description: "", color: "var(--sector-office)", receiptPrefix: "", target: 1, creditTitles: [], debitTitles: [] };
 import { clearSignInTransition, isSignInTransitionPending } from "@/lib/khazna/sign-in-transition";
-import { useKhazna } from "@/lib/khazna/store";
+import { managerNameIn, useKhazna } from "@/lib/khazna/store";
 import type { Role, SectorSlug } from "@/lib/khazna/types";
 import { cn } from "@/lib/utils";
 import { Avatar } from "./primitives";
@@ -152,8 +156,10 @@ function NavList({ role, sectorSlug, onNavigate }: { role: Role; sectorSlug: Sec
 }
 
 function ContextCard({ role, sectorSlug }: { role: Role; sectorSlug: SectorSlug }) {
-  const sector = useKhazna((s) => s.sectors.find((x) => x.slug === sectorSlug)!);
-  const me = useKhazna((s) => s.students.find((x) => x.id === s.meStudentId)!);
+  const sector = useKhazna((s) => s.sectors.find((x) => x.slug === sectorSlug)) ?? NO_SECTOR;
+  const managerName = useKhazna((s) => managerNameIn(s, sectorSlug));
+  const collegeName = useKhazna((s) => s.college.name);
+  const me = useKhazna((s) => s.students.find((x) => x.id === s.meStudentId)) ?? NO_STUDENT;
   if (role === "manager") {
     const Icon = SECTOR_ICON[sector.slug];
     return (
@@ -164,7 +170,7 @@ function ContextCard({ role, sectorSlug }: { role: Role; sectorSlug: SectorSlug 
           </span>
           <div className="min-w-0">
             <div className="truncate text-sm font-semibold text-foreground">{sector.name}</div>
-            <div className="truncate text-[11px] text-muted-foreground">Managed by {managerNameFor(sector.slug)}</div>
+            <div className="truncate text-[11px] text-muted-foreground">Managed by {managerName}</div>
           </div>
         </div>
       </div>
@@ -187,7 +193,7 @@ function ContextCard({ role, sectorSlug }: { role: Role; sectorSlug: SectorSlug 
     <div className="glass-inset mb-5 p-3">
       <div className="text-[11px] uppercase tracking-wider text-subtle">Academic year</div>
       <div className="text-sm font-semibold text-foreground">2026–27 · Term 2</div>
-      <div className="mt-1 text-[11px] text-muted-foreground">Islahul Uloom Arabic College</div>
+      <div className="mt-1 truncate text-[11px] text-muted-foreground">{collegeName}</div>
     </div>
   );
 }
@@ -199,7 +205,7 @@ export function AppShell({ role, sectorSlug, children }: { role: Role; sectorSlu
   const setManagerSector = useKhazna((s) => s.setManagerSector);
   const sectors = useKhazna((s) => s.sectors);
   const unread = useKhazna((s) => s.notices.filter((n) => !n.read).length);
-  const me = useKhazna((s) => s.students.find((x) => x.id === s.meStudentId)!);
+  const me = useKhazna((s) => s.students.find((x) => x.id === s.meStudentId)) ?? NO_STUDENT;
   const [mobileOpen, setMobileOpen] = useState(false);
   // Arriving straight from the login hand-off: play a one-time blur-to-sharp reveal.
   const [entering, setEntering] = useState(isSignInTransitionPending);
@@ -207,13 +213,23 @@ export function AppShell({ role, sectorSlug, children }: { role: Role; sectorSlu
     clearSignInTransition();
   }, []);
   const slug = sectorSlug ?? managerSector;
-  const current = sectors.find((s) => s.slug === slug)!;
+  const current = sectors.find((s) => s.slug === slug) ?? NO_SECTOR;
+  const college = useKhazna((s) => s.college);
+  const currentManager = useKhazna((s) => managerNameIn(s, slug));
   const RoleIcon = ROLE_META[role].icon;
 
   const switchRole = (r: Role) => {
     if (r === "admin") navigate({ to: "/admin" });
-    else if (r === "manager") navigate({ to: "/m/$sectorSlug", params: { sectorSlug: managerSector } });
-    else navigate({ to: "/app" });
+    else if (r === "manager") {
+      const target = sectors.find((s) => s.slug === managerSector)?.slug ?? sectors[0]?.slug;
+      if (!target) {
+        toast("Add a sector first", { description: "Sector managers appear once a sector exists." });
+        navigate({ to: "/admin/sectors" });
+      } else navigate({ to: "/m/$sectorSlug", params: { sectorSlug: target } });
+    } else if (me === NO_STUDENT) {
+      toast("No students yet", { description: "Upload students first, then they can sign in with their admission number." });
+      navigate({ to: "/admin/students/import" });
+    } else navigate({ to: "/app" });
   };
 
   const switchSector = (s: SectorSlug) => {
@@ -229,9 +245,9 @@ export function AppShell({ role, sectorSlug, children }: { role: Role; sectorSlu
 
   const user =
     role === "admin"
-      ? { name: SUPER_ADMIN.name, sub: SUPER_ADMIN.title }
+      ? { name: college.adminName, sub: "Super Admin" }
       : role === "manager"
-        ? { name: managerNameFor(slug), sub: `${current.name} manager` }
+        ? { name: currentManager, sub: `${current.name} manager` }
         : { name: me.name, sub: `${me.id} · ${me.className}` };
 
   return (

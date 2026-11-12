@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { Check, Clock, Mail, Phone, Plus, Settings2, ShieldCheck, UserPlus } from "lucide-react";
+import { Check, Clock, Download, FileSpreadsheet, Mail, Phone, Plus, Settings2, ShieldCheck, UploadCloud, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Btn } from "@/components/khazna/btn";
@@ -8,8 +8,10 @@ import { KDrawer } from "@/components/khazna/overlays";
 import { Avatar, Chip, Field, PageHeader } from "@/components/khazna/primitives";
 import { SECTOR_ICON, tileVar } from "@/components/khazna/sector-meta";
 import { timeAgo } from "@/lib/khazna/format";
+import { downloadCSV, parseCSV } from "@/lib/khazna/download";
 import { useKhazna } from "@/lib/khazna/store";
 import type { Manager, SectorSlug } from "@/lib/khazna/types";
+import type { ManagerInput } from "@/lib/khazna/store";
 import { cn } from "@/lib/utils";
 import { reveal } from "@/components/khazna/motion";
 
@@ -32,6 +34,8 @@ function AdminsPage() {
   const sectors = useKhazna((s) => s.sectors);
   const [editing, setEditing] = useState<Manager | null>(null);
   const [inviting, setInviting] = useState(false);
+  const [bulk, setBulk] = useState(false);
+  const college = useKhazna((s) => s.college);
 
   return (
     <div>
@@ -40,9 +44,14 @@ function AdminsPage() {
         title="Admins & sector managers"
         description="Managers can only post and void entries in the sectors assigned to them."
         actions={
-          <Btn variant="primary" onClick={() => setInviting(true)}>
-            <UserPlus /> Invite manager
-          </Btn>
+          <>
+            <Btn variant="glass" onClick={() => setBulk(true)}>
+              <UploadCloud /> Bulk upload
+            </Btn>
+            <Btn variant="primary" onClick={() => setInviting(true)}>
+              <UserPlus /> Add manager
+            </Btn>
+          </>
         }
       />
 
@@ -51,7 +60,7 @@ function AdminsPage() {
           <ShieldCheck className="size-5" />
         </div>
         <div className="flex-1">
-          <div className="font-medium text-foreground">Abdulla K. · Super Admin</div>
+          <div className="font-medium text-foreground">{college.adminName} · Super Admin</div>
           <div className="text-xs text-muted-foreground">Full access to every sector, student and audit record. Cannot be reassigned from here.</div>
         </div>
         <Chip tone="primary">Owner</Chip>
@@ -79,7 +88,8 @@ function AdminsPage() {
             <div className="mt-4 flex min-h-[2rem] flex-wrap gap-1.5">
               {m.sectors.length === 0 && <span className="text-xs text-subtle">No sectors assigned</span>}
               {m.sectors.map((slug) => {
-                const s = sectors.find((x) => x.slug === slug)!;
+                const s = sectors.find((x) => x.slug === slug);
+                if (!s) return null;
                 const Icon = SECTOR_ICON[slug];
                 return (
                   <span key={slug} className="inline-flex items-center gap-1.5 rounded-full border border-tile bg-tile-soft px-2.5 py-1 text-xs text-foreground" style={tileVar(s.color)}>
@@ -100,12 +110,13 @@ function AdminsPage() {
         ))}
         <button onClick={() => setInviting(true)} className="flex min-h-[14rem] flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-glass-border text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary">
           <Plus className="size-6" />
-          <span className="text-sm font-medium">Invite another manager</span>
+          <span className="text-sm font-medium">{managers.length ? "Add another manager" : "Add your first manager"}</span>
         </button>
       </div>
 
       <AssignDrawer manager={editing} onClose={() => setEditing(null)} />
       <InviteDrawer open={inviting} onOpenChange={setInviting} />
+      <BulkManagersDrawer open={bulk} onOpenChange={setBulk} />
     </div>
   );
 }
@@ -185,7 +196,7 @@ function AssignDrawer({ manager, onClose }: { manager: Manager | null; onClose: 
 }
 
 function InviteDrawer({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
-  const invite = useKhazna((s) => s.inviteManager);
+  const addManagers = useKhazna((s) => s.addManagers);
   const [form, setForm] = useState({ name: "", email: "", phone: "" });
   const [sel, setSel] = useState<SectorSlug[]>([]);
   const [touched, setTouched] = useState(false);
@@ -199,8 +210,8 @@ function InviteDrawer({ open, onOpenChange }: { open: boolean; onOpenChange: (o:
     <KDrawer
       open={open}
       onOpenChange={onOpenChange}
-      title="Invite a sector manager"
-      description="They'll receive an email to set their password."
+      title="Add a sector manager"
+      description="They sign in with this email and only see the sectors you assign."
       footer={
         <>
           <Btn variant="ghost" onClick={() => onOpenChange(false)}>
@@ -211,15 +222,15 @@ function InviteDrawer({ open, onOpenChange }: { open: boolean; onOpenChange: (o:
             onClick={() => {
               setTouched(true);
               if (!ok) return;
-              invite({ name: form.name.trim(), email: form.email, phone: form.phone || "—", sectors: sel });
-              toast.success(`Invite sent to ${form.email}`);
+              addManagers([{ name: form.name.trim(), email: form.email.trim().toLowerCase(), phone: form.phone || "—", sectors: sel }]);
+              toast.success(`${form.name.trim()} added`, { description: "They can now sign in with this email." });
               setForm({ name: "", email: "", phone: "" });
               setSel([]);
               setTouched(false);
               onOpenChange(false);
             }}
           >
-            <Mail /> Send invite
+            <Check /> Add manager
           </Btn>
         </>
       }
@@ -241,6 +252,125 @@ function InviteDrawer({ open, onOpenChange }: { open: boolean; onOpenChange: (o:
           <SectorPicker value={sel} onChange={setSel} />
           {touched && errors.sectors && <div className="mt-1 text-xs text-debit">{errors.sectors}</div>}
         </div>
+      </div>
+    </KDrawer>
+  );
+}
+
+const MANAGER_TEMPLATE_HEADERS = ["Name", "Email", "Phone Number", "Sectors"];
+
+function BulkManagersDrawer({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
+  const sectors = useKhazna((s) => s.sectors);
+  const managers = useKhazna((s) => s.managers);
+  const addManagers = useKhazna((s) => s.addManagers);
+  const [file, setFile] = useState("");
+  const [rows, setRows] = useState<{ m: ManagerInput; errors: string[] }[]>([]);
+
+  const template = () =>
+    downloadCSV("managers-template.csv", [
+      MANAGER_TEMPLATE_HEADERS,
+      ["Ustad Nizar Hudawi", "nizar@college.edu", "9847000001", sectors.slice(0, 2).map((s) => s.name).join("; ") || "Office"],
+    ]);
+
+  const onFile = (f: File | undefined) => {
+    if (!f) return;
+    f.text().then((text) => {
+      const { headers, rows: raw } = parseCSV(text);
+      const col = (re: RegExp) => headers.findIndex((h) => re.test(h.toLowerCase()));
+      const [ni, ei, pi, si] = [col(/name/), col(/mail/), col(/phone|mobile/), col(/sector/)];
+      if (ni < 0 || ei < 0) {
+        toast.error("The file needs Name and Email columns", { description: "Download the template to see the format." });
+        return;
+      }
+      const seen = new Set<string>();
+      setFile(f.name);
+      setRows(
+        raw.map((r) => {
+          const email = (r[ei] ?? "").toLowerCase();
+          const wanted = (si >= 0 ? (r[si] ?? "") : "").split(/[;|]/).map((x) => x.trim().toLowerCase()).filter(Boolean);
+          const matched = sectors.filter((s) => wanted.includes(s.name.toLowerCase()) || wanted.includes(s.slug));
+          const errors: string[] = [];
+          if ((r[ni] ?? "").length < 3) errors.push("Name missing");
+          if (!/^\S+@\S+\.\S+$/.test(email)) errors.push("Bad email");
+          else if (managers.some((m) => m.email.toLowerCase() === email) || seen.has(email)) errors.push("Email already added");
+          if (matched.length < wanted.length) errors.push("Unknown sector");
+          seen.add(email);
+          return { m: { name: r[ni] ?? "", email, phone: (pi >= 0 && r[pi]) || "—", sectors: matched.map((s) => s.slug) }, errors };
+        }),
+      );
+    });
+  };
+
+  const valid = rows.filter((r) => r.errors.length === 0);
+  const close = () => {
+    setRows([]);
+    setFile("");
+    onOpenChange(false);
+  };
+
+  return (
+    <KDrawer
+      open={open}
+      onOpenChange={(o) => (o ? onOpenChange(true) : close())}
+      title="Bulk upload managers"
+      description="Fill the template in Excel or Google Sheets, save as CSV and upload it here."
+      footer={
+        <>
+          <Btn variant="ghost" onClick={close}>
+            Cancel
+          </Btn>
+          <Btn
+            variant="primary"
+            disabled={valid.length === 0}
+            onClick={() => {
+              addManagers(valid.map((r) => r.m));
+              toast.success(`${valid.length} manager${valid.length === 1 ? "" : "s"} added`);
+              close();
+            }}
+          >
+            <Check /> Add {valid.length || ""} manager{valid.length === 1 ? "" : "s"}
+          </Btn>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        <div className="glass-inset flex items-center justify-between gap-3 p-3">
+          <div className="text-sm">
+            <div className="font-medium text-foreground">Template</div>
+            <div className="text-xs text-muted-foreground">Name, Email, Phone Number (optional), Sectors separated by “;”</div>
+          </div>
+          <Btn variant="soft" size="sm" onClick={template}>
+            <Download /> Download
+          </Btn>
+        </div>
+        {sectors.length > 0 && (
+          <div className="text-xs text-muted-foreground">
+            Sector names you can use: <span className="text-foreground">{sectors.map((s) => s.name).join(", ")}</span>
+          </div>
+        )}
+        <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-glass-border p-6 text-center text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary">
+          <UploadCloud className="size-6" />
+          <span className="text-sm font-medium">{file || "Choose a CSV file"}</span>
+          <input type="file" accept=".csv" className="hidden" onChange={(e) => onFile(e.target.files?.[0])} />
+        </label>
+        {rows.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex gap-2 text-xs">
+              <Chip tone="credit">{valid.length} ready</Chip>
+              {rows.length - valid.length > 0 && <Chip tone="debit">{rows.length - valid.length} with problems</Chip>}
+            </div>
+            {rows.map((r, i) => (
+              <div key={i} className="glass-inset flex items-center gap-3 p-2.5 text-sm">
+                <FileSpreadsheet className={cn("size-4 shrink-0", r.errors.length ? "text-debit" : "text-credit")} />
+                <div className="min-w-0 flex-1">
+                  <div className="truncate font-medium text-foreground">{r.m.name || "—"}</div>
+                  <div className="truncate text-xs text-muted-foreground">{r.m.email}</div>
+                </div>
+                <span className={cn("text-xs", r.errors.length ? "text-debit" : "text-muted-foreground")}>{r.errors.length ? r.errors.join(", ") : `${r.m.sectors.length} sector${r.m.sectors.length === 1 ? "" : "s"}`}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </KDrawer>
   );

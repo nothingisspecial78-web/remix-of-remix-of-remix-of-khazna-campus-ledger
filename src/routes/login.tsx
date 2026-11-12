@@ -1,13 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, Check, Eye, EyeOff, GraduationCap, KeyRound, Loader2, Lock, ShieldCheck, User, UserCog } from "lucide-react";
+import { ArrowRight, Building2, Check, Eye, EyeOff, GraduationCap, Hash, KeyRound, Loader2, Lock, Mail, PlayCircle, ShieldCheck, User, UserCog } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Btn } from "@/components/khazna/btn";
 import { Logo } from "@/components/khazna/Logo";
 import { Field } from "@/components/khazna/primitives";
 import { SECTOR_ICON, tileVar } from "@/components/khazna/sector-meta";
-import { SECTORS } from "@/lib/khazna/data";
+import { DEFAULT_MANAGER_SECTOR, SECTORS } from "@/lib/khazna/data";
 import { markSignInTransition } from "@/lib/khazna/sign-in-transition";
 import { useKhazna } from "@/lib/khazna/store";
 import type { Role } from "@/lib/khazna/types";
@@ -16,10 +16,10 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
-      { title: "Sign in — Khazna · Islahul Uloom" },
-      { name: "description", content: "Sign in to Khazna, the Islahul Uloom cash ledger, as an admin, sector manager or student." },
-      { property: "og:title", content: "Sign in — Khazna · Islahul Uloom" },
-      { property: "og:description", content: "Sign in to the Islahul Uloom cash ledger and finance portal." },
+      { title: "Sign in or create your college — Khazna" },
+      { name: "description", content: "Create your college on Khazna or sign in as a Super Admin, sector manager or student." },
+      { property: "og:title", content: "Sign in or create your college — Khazna" },
+      { property: "og:description", content: "Create your college finance portal or sign in." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -27,19 +27,23 @@ export const Route = createFileRoute("/login")({
   component: LoginPage,
 });
 
-const DEMO: Record<Role, { label: string; icon: typeof ShieldCheck; user: string; hint: string }> = {
-  admin: { label: "Super Admin", icon: ShieldCheck, user: "principal@islahululoom.edu.in", hint: "Full college overview" },
-  manager: { label: "Sector Manager", icon: UserCog, user: "jaseel@islahululoom.edu.in", hint: "Dept Fiqh ledger" },
-  student: { label: "Student", icon: GraduationCap, user: "S0125", hint: "Safwan K. · Fiqh 2" },
+const DEMO: Record<Role, { label: string; icon: typeof ShieldCheck; hint: string }> = {
+  admin: { label: "Super Admin", icon: ShieldCheck, hint: "Full college overview" },
+  manager: { label: "Sector Manager", icon: UserCog, hint: "Dept Fiqh ledger" },
+  student: { label: "Student", icon: GraduationCap, hint: "Safwan K. · S0125" },
 };
+
+type Dest = { to: "/admin" } | { to: "/app" } | { to: "/m/$sectorSlug"; params: { sectorSlug: string } };
 
 function LoginPage() {
   const navigate = useNavigate();
-  const managerSector = useKhazna((s) => s.managerSector);
+  const store = useKhazna;
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [role, setRole] = useState<Role>("admin");
-  const [user, setUser] = useState(DEMO.admin.user);
-  const [pass, setPass] = useState("khazna@2026");
+  const [user, setUser] = useState("");
+  const [pass, setPass] = useState("");
   const [show, setShow] = useState(false);
+  const [su, setSu] = useState({ college: "", name: "", email: "", password: "", confirm: "" });
   // idle → loading (button pulses) → leaving (card zooms out, glow hand-off) → navigate
   const [phase, setPhase] = useState<"idle" | "loading" | "leaving">("idle");
   const loading = phase === "loading";
@@ -48,30 +52,64 @@ function LoginPage() {
 
   const choose = (r: Role) => {
     setRole(r);
-    setUser(DEMO[r].user);
-    setPass("khazna@2026");
+    setUser("");
+    setPass("");
     setError("");
+  };
+
+  const go = (dest: Dest, message: string, before?: () => void) => {
+    setError("");
+    setPhase("loading");
+    setTimeout(() => {
+      before?.();
+      setPhase("leaving");
+      markSignInTransition();
+      setTimeout(() => {
+        toast.success(message);
+        navigate(dest);
+      }, 720);
+    }, 800);
+  };
+
+  const tryDemo = (r: Role) => {
+    if (phase !== "idle") return;
+    const dest: Dest = r === "admin" ? { to: "/admin" } : r === "manager" ? { to: "/m/$sectorSlug", params: { sectorSlug: DEFAULT_MANAGER_SECTOR } } : { to: "/app" };
+    go(dest, `Demo opened as ${DEMO[r].label}`, () => store.getState().loadDemo());
   };
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
     if (phase !== "idle") return;
-    if (!user.trim() || pass.length < 6) {
-      setError("Enter your Ad.No / email and a password of at least 6 characters.");
+    const st = store.getState();
+    if (mode === "signup") {
+      if (su.college.trim().length < 3) return setError("Enter your college name.");
+      if (su.name.trim().length < 3) return setError("Enter your full name.");
+      if (!/^\S+@\S+\.\S+$/.test(su.email)) return setError("Enter a valid email address.");
+      if (su.password.length < 8) return setError("Password must be at least 8 characters.");
+      if (su.password !== su.confirm) return setError("Passwords don't match.");
+      go({ to: "/admin" }, `${su.college.trim()} is ready — start by adding sectors`, () =>
+        st.signUpCollege({ college: su.college.trim(), name: su.name.trim(), email: su.email, password: su.password }),
+      );
       return;
     }
-    setError("");
-    setPhase("loading");
-    setTimeout(() => {
-      setPhase("leaving");
-      markSignInTransition();
-      setTimeout(() => {
-        toast.success(`Welcome back — signed in as ${DEMO[role].label}`);
-        if (role === "admin") navigate({ to: "/admin" });
-        else if (role === "manager") navigate({ to: "/m/$sectorSlug", params: { sectorSlug: managerSector } });
-        else navigate({ to: "/app" });
-      }, 720);
-    }, 800);
+    const id = user.trim();
+    if (role === "student") {
+      const s = st.students.find((x) => x.id.toLowerCase() === id.toLowerCase());
+      if (!s) return setError("No student found with that admission number.");
+      go({ to: "/app" }, `Welcome, ${s.name}`, () => st.setMeStudent(s.id));
+      return;
+    }
+    if (!id || pass.length < 6) return setError("Enter your email and password.");
+    if (role === "admin") {
+      if (id.toLowerCase() !== st.college.adminEmail.toLowerCase() || pass !== st.college.password) return setError("Email or password is incorrect.");
+      go({ to: "/admin" }, `Welcome back, ${st.college.adminName}`);
+      return;
+    }
+    const m = st.managers.find((x) => x.email.toLowerCase() === id.toLowerCase());
+    if (!m) return setError("No sector manager with that email. Ask your Super Admin to add you.");
+    const sector = m.sectors.find((x) => st.sectors.some((s) => s.slug === x));
+    if (!sector) return setError("You haven't been assigned a sector yet.");
+    go({ to: "/m/$sectorSlug", params: { sectorSlug: sector } }, `Welcome back, ${m.name}`, () => st.setManagerSector(sector));
   };
 
   return (
@@ -93,7 +131,7 @@ function LoginPage() {
               <span className="text-gradient-primary">accounted for.</span>
             </h1>
             <p className="mt-5 text-base text-muted-foreground">
-              One transparent ledger for the office, the union, welfare and every department of Islahul Uloom — with append-only audit trails.
+              One transparent ledger for your college office, unions, welfare wings and every department — with append-only audit trails.
             </p>
           </motion.div>
           <div className="mt-10 grid grid-cols-5 gap-3">
@@ -121,10 +159,10 @@ function LoginPage() {
         </div>
         <div className="flex gap-8 text-sm text-muted-foreground">
           <div>
-            <div className="font-display text-2xl font-semibold text-foreground num">56</div>students
+            <div className="font-display text-2xl font-semibold text-foreground num">Any</div>college
           </div>
           <div>
-            <div className="font-display text-2xl font-semibold text-foreground num">5</div>sectors
+            <div className="font-display text-2xl font-semibold text-foreground num">∞</div>sectors
           </div>
           <div>
             <div className="font-display text-2xl font-semibold text-foreground num">100%</div>audited
@@ -144,47 +182,108 @@ function LoginPage() {
           <div className="mb-6 lg:hidden">
             <Logo />
           </div>
-          <h2 className="text-2xl font-semibold text-foreground">Sign in</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Pick a demo role to preview, or use your credentials.</p>
-
-          <div className="mt-6 grid grid-cols-3 gap-2">
-            {(Object.keys(DEMO) as Role[]).map((r) => {
-              const D = DEMO[r];
-              const active = r === role;
-              return (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => choose(r)}
-                  className={cn(
-                    "relative flex flex-col items-center gap-1.5 rounded-xl border px-2 py-3 text-center transition-all",
-                    active ? "border-primary/50 bg-primary/10 text-foreground shadow-glow" : "border-hairline bg-accent text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  <D.icon className={cn("size-5", active && "text-primary")} />
-                  <span className="text-xs font-medium">{D.label}</span>
-                  <span className="text-[10px] leading-tight text-subtle">{D.hint}</span>
-                </button>
-              );
-            })}
+          <div className="grid grid-cols-2 gap-1 rounded-xl border border-hairline bg-accent p-1">
+            {(["signin", "signup"] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => {
+                  setMode(m);
+                  setError("");
+                }}
+                className={cn("relative rounded-lg py-2 text-sm font-medium transition-colors", mode === m ? "text-foreground" : "text-muted-foreground hover:text-foreground")}
+              >
+                {mode === m && <motion.span layoutId="auth-tab" className="absolute inset-0 rounded-lg bg-card shadow-sm" transition={{ type: "spring", stiffness: 400, damping: 32 }} />}
+                <span className="relative">{m === "signin" ? "Sign in" : "Create college"}</span>
+              </button>
+            ))}
           </div>
 
+          <h2 className="mt-6 text-2xl font-semibold text-foreground">{mode === "signin" ? "Welcome back" : "Set up your college"}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {mode === "signin" ? "Choose who you are and sign in." : "Create the Super Admin account. You'll add sectors, managers and students next."}
+          </p>
+
           <form onSubmit={submit} className="mt-6 space-y-4">
-            <Field label={role === "student" ? "Admission number" : "Email"}>
-              <div className="relative">
-                <User className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-subtle" />
-                <input value={user} onChange={(e) => setUser(e.target.value)} className="k-input pl-9" autoComplete="username" />
-              </div>
-            </Field>
-            <Field label="Password">
-              <div className="relative">
-                <Lock className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-subtle" />
-                <input value={pass} onChange={(e) => setPass(e.target.value)} type={show ? "text" : "password"} className="k-input px-9" autoComplete="current-password" />
-                <button type="button" onClick={() => setShow((v) => !v)} className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-subtle hover:text-foreground" aria-label="Toggle password">
-                  {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                </button>
-              </div>
-            </Field>
+            {mode === "signin" ? (
+              <>
+                <div className="grid grid-cols-3 gap-2">
+                  {(Object.keys(DEMO) as Role[]).map((r) => {
+                    const D = DEMO[r];
+                    const active = r === role;
+                    return (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => choose(r)}
+                        className={cn(
+                          "flex flex-col items-center gap-1.5 rounded-xl border px-2 py-3 text-center transition-all",
+                          active ? "border-primary/50 bg-primary/10 text-foreground shadow-glow" : "border-hairline bg-accent text-muted-foreground hover:text-foreground",
+                        )}
+                      >
+                        <D.icon className={cn("size-5", active && "text-primary")} />
+                        <span className="text-xs font-medium">{D.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {role === "student" ? (
+                  <Field label="Admission number">
+                    <div className="relative">
+                      <Hash className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-subtle" />
+                      <input value={user} onChange={(e) => setUser(e.target.value)} className="k-input pl-9 uppercase" placeholder="e.g. S0125" autoComplete="username" />
+                    </div>
+                  </Field>
+                ) : (
+                  <>
+                    <Field label="Email">
+                      <div className="relative">
+                        <User className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-subtle" />
+                        <input value={user} onChange={(e) => setUser(e.target.value)} type="email" className="k-input pl-9" placeholder="you@college.edu" autoComplete="username" />
+                      </div>
+                    </Field>
+                    <Field label="Password">
+                      <div className="relative">
+                        <Lock className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-subtle" />
+                        <input value={pass} onChange={(e) => setPass(e.target.value)} type={show ? "text" : "password"} className="k-input px-9" autoComplete="current-password" />
+                        <button type="button" onClick={() => setShow((v) => !v)} className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-subtle hover:text-foreground" aria-label="Toggle password">
+                          {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                        </button>
+                      </div>
+                    </Field>
+                  </>
+                )}
+              </>
+            ) : (
+              <>
+                <Field label="College name">
+                  <div className="relative">
+                    <Building2 className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-subtle" />
+                    <input value={su.college} onChange={(e) => setSu({ ...su, college: e.target.value })} className="k-input pl-9" placeholder="e.g. Al Noor Arts College" />
+                  </div>
+                </Field>
+                <Field label="Your full name">
+                  <div className="relative">
+                    <User className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-subtle" />
+                    <input value={su.name} onChange={(e) => setSu({ ...su, name: e.target.value })} className="k-input pl-9" placeholder="Principal or accounts head" />
+                  </div>
+                </Field>
+                <Field label="Email">
+                  <div className="relative">
+                    <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-subtle" />
+                    <input value={su.email} onChange={(e) => setSu({ ...su, email: e.target.value })} type="email" className="k-input pl-9" placeholder="you@college.edu" autoComplete="email" />
+                  </div>
+                </Field>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field label="Password">
+                    <input value={su.password} onChange={(e) => setSu({ ...su, password: e.target.value })} type="password" className="k-input" placeholder="8+ characters" autoComplete="new-password" />
+                  </Field>
+                  <Field label="Confirm password">
+                    <input value={su.confirm} onChange={(e) => setSu({ ...su, confirm: e.target.value })} type="password" className="k-input" autoComplete="new-password" />
+                  </Field>
+                </div>
+              </>
+            )}
             <AnimatePresence>
               {error && (
                 <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="rounded-lg border border-debit/30 bg-debit/10 px-3 py-2 text-xs text-debit">
@@ -192,16 +291,7 @@ function LoginPage() {
                 </motion.div>
               )}
             </AnimatePresence>
-            <div className="flex items-center justify-between text-xs">
-              <label className="flex items-center gap-2 text-muted-foreground">
-                <input type="checkbox" defaultChecked className="accent-primary" /> Keep me signed in
-              </label>
-              <button type="button" className="text-primary hover:underline" onClick={() => toast("Reset link sent", { description: "Check the email registered with the college office." })}>
-                Forgot password?
-              </button>
-            </div>
             <div className="relative">
-              {/* Pulse rings radiating from the button while signing in */}
               <AnimatePresence>
                 {phase !== "idle" &&
                   [0, 1, 2].map((k) => (
@@ -227,23 +317,34 @@ function LoginPage() {
                   />
                 )}
                 <AnimatePresence mode="wait" initial={false}>
-                  <motion.span
-                    key={phase}
-                    className="relative inline-flex items-center gap-2"
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    transition={{ duration: 0.2 }}
-                  >
+                  <motion.span key={phase} className="relative inline-flex items-center gap-2" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
                     {loading ? <Loader2 className="animate-spin" /> : leaving ? <Check /> : <KeyRound />}
-                    {loading ? "Verifying…" : leaving ? "Opening your dashboard" : `Continue as ${DEMO[role].label}`}
+                    {loading ? "Verifying…" : leaving ? "Opening your dashboard" : mode === "signup" ? "Create college account" : `Sign in as ${DEMO[role].label}`}
                     {phase === "idle" && <ArrowRight />}
                   </motion.span>
                 </AnimatePresence>
               </Btn>
             </div>
           </form>
-          <p className="mt-6 text-center text-[11px] text-subtle">Demo preview · all data is sample data stored in your browser session.</p>
+
+          <div className="mt-6 border-t border-hairline pt-5">
+            <div className="mb-3 flex items-center gap-2 text-xs font-medium text-muted-foreground">
+              <PlayCircle className="size-4 text-primary" /> Try the demo — sample college, no sign-up
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {(Object.keys(DEMO) as Role[]).map((r) => {
+                const D = DEMO[r];
+                return (
+                  <button key={r} type="button" onClick={() => tryDemo(r)} className="hover-lift flex flex-col items-center gap-1 rounded-xl border border-hairline bg-accent px-2 py-2.5 text-center text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground">
+                    <D.icon className="size-4" />
+                    <span className="text-[11px] font-medium">{D.label}</span>
+                    <span className="text-[10px] leading-tight text-subtle">{D.hint}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <p className="mt-5 text-center text-[11px] text-subtle">Preview · everything is kept in this browser tab and resets on refresh.</p>
         </motion.div>
       </div>
 

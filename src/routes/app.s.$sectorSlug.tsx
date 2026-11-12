@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Btn } from "@/components/khazna/btn";
 import { Amount, Chip, CountUp, EmptyState, StatCard, TableShell } from "@/components/khazna/primitives";
 import { SECTOR_ICON, tileVar } from "@/components/khazna/sector-meta";
-import { asSector, isSectorSlug } from "@/lib/khazna/data";
+import { asSector } from "@/lib/khazna/data";
 import { downloadCSV } from "@/lib/khazna/download";
 import { formatDate, TODAY } from "@/lib/khazna/format";
 import { totals, withRunningBalance } from "@/lib/khazna/ledger";
@@ -16,7 +16,7 @@ import { reveal } from "@/components/khazna/motion";
 
 export const Route = createFileRoute("/app/s/$sectorSlug")({
   beforeLoad: ({ params }) => {
-    if (!isSectorSlug(params.sectorSlug)) throw notFound();
+    if (!useKhazna.getState().sectors.some((s) => s.slug === params.sectorSlug)) throw notFound();
   },
   head: () => ({
     meta: [

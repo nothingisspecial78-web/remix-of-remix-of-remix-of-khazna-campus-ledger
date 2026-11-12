@@ -7,11 +7,11 @@ import { Btn } from "@/components/khazna/btn";
 import { NewEntryDialog, type EntryPreset } from "@/components/khazna/NewEntryDialog";
 import { Amount, Avatar, CountUp, EmptyState, GlassCard, StatCard } from "@/components/khazna/primitives";
 import { SECTOR_ICON, tileVar } from "@/components/khazna/sector-meta";
-import { asSector, managerNameFor } from "@/lib/khazna/data";
+import { asSector } from "@/lib/khazna/data";
 import { formatCompactINR, formatINR, formatShortDate } from "@/lib/khazna/format";
 import { totals } from "@/lib/khazna/ledger";
 import { dailySeries, inLastDays, pendingDues, studentSectorBalances } from "@/lib/khazna/selectors";
-import { useKhazna } from "@/lib/khazna/store";
+import { managerNameIn, useKhazna } from "@/lib/khazna/store";
 
 export const Route = createFileRoute("/m/$sectorSlug/")({
   head: () => ({
@@ -30,6 +30,7 @@ export const Route = createFileRoute("/m/$sectorSlug/")({
 function SectorOverview() {
   const slug = asSector(Route.useParams().sectorSlug);
   const sector = useKhazna((s) => s.sectors.find((x) => x.slug === slug)!);
+  const managerName = useKhazna((s) => managerNameIn(s, slug));
   const txs = useKhazna((s) => s.transactions);
   const students = useKhazna((s) => s.students);
   const [entryOpen, setEntryOpen] = useState(false);
@@ -73,7 +74,7 @@ function SectorOverview() {
               <div className="text-xs font-medium uppercase tracking-[0.16em] text-tile">Sector overview</div>
               <h1 className="mt-1 text-3xl font-semibold text-foreground">{sector.name}</h1>
               <p className="mt-1 text-sm text-muted-foreground">
-                {sector.description} · Managed by {managerNameFor(slug)}
+                {sector.description} · Managed by {managerName}
               </p>
             </div>
           </div>

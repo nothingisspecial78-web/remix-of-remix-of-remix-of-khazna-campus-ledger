@@ -31,7 +31,41 @@ export interface BatchInput {
   receiptStart: number;
 }
 
+export interface College {
+  name: string;
+  adminName: string;
+  adminEmail: string;
+  password: string;
+  /** true while the seeded sample college is loaded */
+  demo: boolean;
+}
+
+export const DEMO_PASSWORD = "khazna@2026";
+const DEMO_COLLEGE: College = { name: "Islahul Uloom", adminName: SUPER_ADMIN.name, adminEmail: SUPER_ADMIN.email, password: DEMO_PASSWORD, demo: true };
+
+export interface NewSectorInput {
+  name: string;
+  description: string;
+  receiptPrefix: string;
+  target: number;
+  color: string;
+}
+
+export type ManagerInput = Omit<Manager, "id" | "status" | "lastActive">;
+
+const slugify = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "sector";
+
+/** Name of the manager assigned to a sector, falling back to the seeded demo names. */
+export const managerNameIn = (st: { managers: Manager[] }, sector: SectorSlug) => st.managers.find((m) => m.sectors.includes(sector))?.name ?? managerNameFor(sector);
+
 interface KhaznaState {
+  college: College;
+  signUpCollege: (input: { college: string; name: string; email: string; password: string }) => void;
+  loadDemo: () => void;
+  addSector: (input: NewSectorInput) => Sector;
+  addManagers: (list: ManagerInput[]) => void;
+  setMeStudent: (id: string) => void;
+
   sectors: Sector[];
   classes: string[];
   students: Student[];
@@ -61,7 +95,61 @@ interface KhaznaState {
   markAllRead: () => void;
 }
 
+const DEMO_STATE = () => ({
+  college: DEMO_COLLEGE,
+  sectors: SECTORS,
+  classes: CLASSES,
+  students: STUDENTS,
+  transactions: TRANSACTIONS,
+  batches: BATCHES,
+  audit: AUDIT,
+  managers: MANAGERS,
+  notices: NOTICES,
+  meStudentId: ME_STUDENT_ID,
+  managerSector: DEFAULT_MANAGER_SECTOR,
+});
+
 export const useKhazna = create<KhaznaState>((set, get) => ({
+  college: DEMO_COLLEGE,
+  loadDemo: () => set(DEMO_STATE()),
+  signUpCollege: ({ college, name, email, password }) => {
+    set({
+      college: { name: college, adminName: name, adminEmail: email.trim().toLowerCase(), password, demo: false },
+      sectors: [],
+      classes: [],
+      students: [],
+      transactions: [],
+      batches: [],
+      audit: [],
+      managers: [],
+      notices: [],
+      meStudentId: "",
+      managerSector: "",
+    });
+    get().log({ actor: name, role: "admin", action: "SIGN_UP", target: college, details: "College workspace created" });
+  },
+  addSector: (input) => {
+    const base = slugify(input.name);
+    let slug = base;
+    for (let n = 2; get().sectors.some((x) => x.slug === slug); n++) slug = `${base}-${n}`;
+    const short = input.name.split(/\s+/).map((w) => w[0] ?? "").join("").slice(0, 2).toUpperCase() || "SC";
+    const sector: Sector = { slug, short, creditTitles: ["Cash Deposit"], debitTitles: [], ...input };
+    set((st) => ({ sectors: [...st.sectors, sector], managerSector: st.managerSector || slug }));
+    get().log({ actor: get().college.adminName, role: "admin", action: "ADD_SECTOR", target: sector.name, details: `Receipts ${sector.receiptPrefix} · target ₹${sector.target.toLocaleString("en-IN")}` });
+    return sector;
+  },
+  addManagers: (list) => {
+    if (!list.length) return;
+    set((st) => ({ managers: [...st.managers, ...list.map((m) => ({ ...m, id: uid("M"), status: "active" as const, lastActive: NOW_ISO }))] }));
+    get().log({
+      actor: get().college.adminName,
+      role: "admin",
+      action: "INVITE_ADMIN",
+      target: list.length === 1 ? list[0]!.name : "Manager upload",
+      details: list.length === 1 ? `Added ${list[0]!.email}` : `Added ${list.length} managers`,
+    });
+  },
+  setMeStudent: (id) => set({ meStudentId: id }),
   sectors: SECTORS,
   classes: CLASSES,
   students: STUDENTS,
@@ -81,11 +169,11 @@ export const useKhazna = create<KhaznaState>((set, get) => ({
     })),
 
   addEntry: (input) => {
-    const tx: Tx = { ...input, id: uid("TX"), createdBy: managerNameFor(input.sector) };
+    const tx: Tx = { ...input, id: uid("TX"), createdBy: managerNameIn(get(), input.sector) };
     set((st) => ({ transactions: [tx, ...st.transactions] }));
     const student = get().students.find((s) => s.id === input.studentId);
     get().log({
-      actor: managerNameFor(input.sector),
+      actor: managerNameIn(get(), input.sector),
       role: "manager",
       action: "CREATE_ENTRY",
       target: `${input.studentId} · ${student?.name ?? ""}`,
@@ -98,7 +186,7 @@ export const useKhazna = create<KhaznaState>((set, get) => ({
   voidEntry: (id, reason) => {
     const tx = get().transactions.find((t) => t.id === id);
     if (!tx || tx.voided) return;
-    const by = managerNameFor(tx.sector);
+    const by = managerNameIn(get(), tx.sector);
     set((st) => ({
       transactions: st.transactions.map((t) => (t.id === id ? { ...t, voided: { reason, by, at: nowIso() } } : t)),
     }));
@@ -108,7 +196,7 @@ export const useKhazna = create<KhaznaState>((set, get) => ({
   postBatch: (input) => {
     const id = `B-${uid("").slice(0, 6)}`;
     const receipts = receiptSeries(input.receiptPrefix, input.receiptStart, input.studentIds.length);
-    const by = managerNameFor(input.sector);
+    const by = managerNameIn(get(), input.sector);
     const txs: Tx[] = input.studentIds.map((sid, i) => ({
       id: uid("TX"),
       sector: input.sector,
@@ -160,30 +248,30 @@ export const useKhazna = create<KhaznaState>((set, get) => ({
 
   addStudent: (s) => {
     set((st) => ({ students: [...st.students, s] }));
-    get().log({ actor: SUPER_ADMIN.name, role: "admin", action: "ADD_STUDENT", target: `${s.id} · ${s.name}`, details: `Added to ${s.className}` });
+    get().log({ actor: get().college.adminName, role: "admin", action: "ADD_STUDENT", target: `${s.id} · ${s.name}`, details: `Added to ${s.className}` });
   },
 
   importStudents: (list) => {
-    set((st) => ({ students: [...st.students, ...list] }));
-    get().log({ actor: SUPER_ADMIN.name, role: "admin", action: "IMPORT_STUDENTS", target: "CSV import", details: `Imported ${list.length} students` });
+    set((st) => ({ students: [...st.students, ...list], classes: [...st.classes, ...[...new Set(list.map((s) => s.className))].filter((c) => !st.classes.includes(c))] }));
+    get().log({ actor: get().college.adminName, role: "admin", action: "IMPORT_STUDENTS", target: "CSV import", details: `Imported ${list.length} students` });
   },
 
   assignSectors: (managerId, sectors) => {
     const m = get().managers.find((x) => x.id === managerId);
     set((st) => ({ managers: st.managers.map((x) => (x.id === managerId ? { ...x, sectors } : x)) }));
     const names = get().sectors.filter((s) => sectors.includes(s.slug)).map((s) => s.name);
-    get().log({ actor: SUPER_ADMIN.name, role: "admin", action: "ASSIGN_SECTOR", target: m?.name ?? managerId, details: names.length ? `Assigned ${names.join(", ")}` : "All sectors removed" });
+    get().log({ actor: get().college.adminName, role: "admin", action: "ASSIGN_SECTOR", target: m?.name ?? managerId, details: names.length ? `Assigned ${names.join(", ")}` : "All sectors removed" });
   },
 
   inviteManager: (m) => {
     set((st) => ({ managers: [...st.managers, { ...m, id: uid("M"), status: "invited", lastActive: NOW_ISO }] }));
-    get().log({ actor: SUPER_ADMIN.name, role: "admin", action: "INVITE_ADMIN", target: m.name, details: `Invitation sent to ${m.email}` });
+    get().log({ actor: get().college.adminName, role: "admin", action: "INVITE_ADMIN", target: m.name, details: `Invitation sent to ${m.email}` });
   },
 
   updateSector: (slug, patch) => {
     set((st) => ({ sectors: st.sectors.map((s) => (s.slug === slug ? { ...s, ...patch } : s)) }));
     const s = get().sectors.find((x) => x.slug === slug);
-    get().log({ actor: SUPER_ADMIN.name, role: "admin", action: "UPDATE_SECTOR", target: s?.name ?? slug, details: "Sector settings updated" });
+    get().log({ actor: get().college.adminName, role: "admin", action: "UPDATE_SECTOR", target: s?.name ?? slug, details: "Sector settings updated" });
   },
 
   addClass: (c) => set((st) => (st.classes.includes(c) ? st : { classes: [...st.classes, c] })),

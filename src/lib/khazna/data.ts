@@ -249,6 +249,6 @@ export const NOTICES: Notice[] = [
 
 export const SUPER_ADMIN = { name: "Abdulla K.", title: "Principal · Super Admin", email: "principal@islahululoom.edu.in" };
 export const DEFAULT_MANAGER_SECTOR: SectorSlug = "dept-fiqh";
-export const managerNameFor = (s: SectorSlug) => SECTOR_CREATOR[s];
+export const managerNameFor = (s: SectorSlug) => SECTOR_CREATOR[s] ?? "Sector manager";
 
-export const asSector = (s: string): SectorSlug => (isSectorSlug(s) ? s : "office");
+export const asSector = (s: string): SectorSlug => s;
