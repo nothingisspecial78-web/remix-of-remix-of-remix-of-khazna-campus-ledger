@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1c212a" />
+      <stop offset="50%" stop-color="#0f1318" />
+      <stop offset="100%" stop-color="#07090c" />
+    </linearGradient>
+
+    <!-- Orange / Amber Primary Gradient -->
+    <linearGradient id="primary-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fb923c" />
+      <stop offset="50%" stop-color="#f97316" />
+      <stop offset="100%" stop-color="#ea580c" />
+    </linearGradient>
+
+    <!-- Gold Accent Gradient -->
+    <linearGradient id="gold-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="50%" stop-color="#facc15" />
+      <stop offset="100%" stop-color="#eab308" />
+    </linearGradient>
+
+    <!-- Emerald Halal Growth Accent -->
+    <linearGradient id="emerald-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+
+    <!-- Outer Rim Glow Filter -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="16" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+
+    <radialGradient id="radial-glow" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#f97316" stop-opacity="0.28" />
+      <stop offset="50%" stop-color="#f97316" stop-opacity="0.08" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <!-- Base Squircle -->
+  <rect x="16" y="16" width="480" height="480" rx="112" ry="112" fill="url(#bg-grad)" stroke="#ffffff" stroke-opacity="0.14" stroke-width="4" />
+  
+  <!-- Subtle Internal Radial Ambient Glow -->
+  <rect x="20" y="20" width="472" height="472" rx="108" ry="108" fill="url(#radial-glow)" />
+
+  <!-- Inner Hairline Border with Orange Highlight -->
+  <rect x="36" y="36" width="440" height="440" rx="94" ry="94" fill="none" stroke="url(#primary-grad)" stroke-width="2" stroke-opacity="0.4" />
+
+  <!-- Vault Outer Circular Frame -->
+  <circle cx="256" cy="256" r="156" fill="#141820" stroke="url(#primary-grad)" stroke-width="7" filter="url(#glow)" />
+  <circle cx="256" cy="256" r="142" fill="none" stroke="#ffffff" stroke-opacity="0.08" stroke-width="2" />
+
+  <!-- Vault Perimeter Dial Teeth / Markers (12 divisions) -->
+  <g stroke="#ffffff" stroke-opacity="0.3" stroke-width="3" stroke-linecap="round">
+    <line x1="256" y1="120" x2="256" y2="128" />
+    <line x1="256" y1="384" x2="256" y2="392" />
+    <line x1="120" y1="256" x2="128" y2="256" />
+    <line x1="384" y1="256" x2="392" y2="256" />
+
+    <line x1="160" y1="160" x2="166" y2="166" />
+    <line x1="352" y1="352" x2="346" y2="346" />
+    <line x1="352" y1="160" x2="346" y2="166" />
+    <line x1="160" y1="352" x2="166" y2="346" />
+  </g>
+
+  <!-- Heavy Vault Door Hinge Bars (Left side) -->
+  <rect x="80" y="180" width="28" height="32" rx="6" fill="#242b35" stroke="url(#primary-grad)" stroke-width="2.5" />
+  <rect x="80" y="300" width="28" height="32" rx="6" fill="#242b35" stroke="url(#primary-grad)" stroke-width="2.5" />
+  <circle cx="94" cy="196" r="4" fill="#fb923c" />
+  <circle cx="94" cy="316" r="4" fill="#fb923c" />
+
+  <!-- Vault Locking Wheel Spokes (Diagonal Cross + Plus) -->
+  <g stroke="url(#primary-grad)" stroke-width="12" stroke-linecap="round">
+    <line x1="256" y1="172" x2="256" y2="340" />
+    <line x1="172" y1="256" x2="340" y2="256" />
+    <line x1="197" y1="197" x2="315" y2="315" />
+    <line x1="315" y1="197" x2="197" y2="315" />
+  </g>
+
+  <!-- Inner Vault Dial Center -->
+  <circle cx="256" cy="256" r="62" fill="url(#bg-grad)" stroke="url(#gold-grad)" stroke-width="6" />
+  <circle cx="256" cy="256" r="48" fill="#1b2029" stroke="#ffffff" stroke-opacity="0.15" stroke-width="1.5" />
+
+  <!-- Center Keyhole / Jewel Indicator -->
+  <path d="M256 234 A14 14 0 0 0 245 252 L249 274 A7 7 0 0 0 263 274 L267 252 A14 14 0 0 0 256 234 Z" fill="url(#primary-grad)" />
+  <circle cx="256" cy="246" r="5" fill="#ffffff" opacity="0.9" />
+
+  <!-- Halal Ledger Growth Indicator (Top Right Dot) -->
+  <circle cx="376" cy="136" r="14" fill="url(#emerald-grad)" filter="url(#glow)" />
+  <circle cx="376" cy="136" r="6" fill="#ffffff" />
+</svg>

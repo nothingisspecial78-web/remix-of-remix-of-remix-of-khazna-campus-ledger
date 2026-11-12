@@ -19,6 +19,8 @@ import {
   Users,
   UserRound,
   BarChart3,
+  Building2,
+  Plus,
   Upload,
   X,
   type LucideIcon,
@@ -215,6 +217,11 @@ export function AppShell({ role, sectorSlug, children }: { role: Role; sectorSlu
   const slug = sectorSlug ?? managerSector;
   const current = sectors.find((s) => s.slug === slug) ?? NO_SECTOR;
   const college = useKhazna((s) => s.college);
+  const organizations = useKhazna((s) => s.organizations);
+  const switchOrg = useKhazna((s) => s.switchOrg);
+  const createOrg = useKhazna((s) => s.createOrg);
+  const [newOrgOpen, setNewOrgOpen] = useState(false);
+  const [newOrgForm, setNewOrgForm] = useState({ name: "", adminName: "", adminEmail: "", password: "" });
   const currentManager = useKhazna((s) => managerNameIn(s, slug));
   const RoleIcon = ROLE_META[role].icon;
 
@@ -264,6 +271,50 @@ export function AppShell({ role, sectorSlug, children }: { role: Role; sectorSlu
             <MenuIcon className="size-5" />
           </button>
           <Logo />
+
+          {/* Organization Switcher */}
+          <div className="hidden sm:block">
+            <KMenu
+              label="Switch college workspace"
+              trigger={
+                <button className="glass-inset flex h-10 items-center gap-2 px-2.5 text-xs text-foreground hover:bg-accent md:text-sm">
+                  <Building2 className="size-3.5 text-primary" />
+                  <span className="max-w-[120px] truncate font-medium md:max-w-[180px]">{college.name}</span>
+                  {college.demo ? (
+                    <span className="rounded bg-white/10 px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-muted-foreground">Demo</span>
+                  ) : (
+                    <span className="size-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" title="Live Workspace" />
+                  )}
+                  <ChevronDown className="size-3 text-muted-foreground" />
+                </button>
+              }
+            >
+              <div className="px-3 py-1.5 text-[10px] uppercase tracking-wider text-subtle">College Workspaces</div>
+              {organizations.map((org) => (
+                <KMenuItem
+                  key={org.id}
+                  onSelect={() => {
+                    if (org.id !== college.id) {
+                      switchOrg(org.id);
+                      toast.success(`Switched to ${org.name}`);
+                      navigate({ to: "/admin" });
+                    }
+                  }}
+                  active={org.id === college.id}
+                >
+                  <Building2 className="size-4" />
+                  <span className="flex-1 truncate">{org.name}</span>
+                  {org.demo && <span className="ml-1 text-[10px] text-muted-foreground">(Demo)</span>}
+                  {org.id === college.id && <Check className="size-4 text-primary" />}
+                </KMenuItem>
+              ))}
+              <div className="my-1 border-t border-border/40" />
+              <KMenuItem onSelect={() => setNewOrgOpen(true)}>
+                <Plus className="size-4 text-primary" />
+                <span className="font-medium text-primary">New Organisation…</span>
+              </KMenuItem>
+            </KMenu>
+          </div>
 
           <div className="ml-auto flex items-center gap-1.5 md:gap-2">
             <span className="hidden text-[11px] uppercase tracking-wider text-subtle xl:inline">Preview as</span>
@@ -412,6 +463,122 @@ export function AppShell({ role, sectorSlug, children }: { role: Role; sectorSlu
             </div>
             <ContextCard role={role} sectorSlug={slug} />
             <NavList role={role} sectorSlug={slug} onNavigate={() => setMobileOpen(false)} />
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+
+      {/* Create New Organisation Dialog */}
+      <Dialog.Root open={newOrgOpen} onOpenChange={setNewOrgOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-50 bg-background/70 backdrop-blur-md data-[state=open]:animate-in data-[state=open]:fade-in-0" />
+          <Dialog.Content className="glass-strong fixed left-1/2 top-1/2 z-50 w-[92vw] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-2xl p-6 shadow-2xl outline-none data-[state=open]:animate-in data-[state=open]:zoom-in-95 data-[state=open]:fade-in-0">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <span className="grid size-9 place-items-center rounded-xl bg-gradient-primary text-primary-foreground shadow-glow">
+                  <Building2 className="size-4" />
+                </span>
+                <div>
+                  <Dialog.Title className="text-base font-semibold text-foreground">
+                    New College Organisation
+                  </Dialog.Title>
+                  <Dialog.Description className="text-xs text-muted-foreground">
+                    Creates an isolated workspace with zero demo data.
+                  </Dialog.Description>
+                </div>
+              </div>
+              <Dialog.Close className="rounded-lg p-1.5 text-muted-foreground hover:bg-accent" aria-label="Close">
+                <X className="size-4" />
+              </Dialog.Close>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (newOrgForm.name.trim().length < 3) {
+                  toast.error("Please enter a valid college or organisation name.");
+                  return;
+                }
+                if (newOrgForm.adminName.trim().length < 2) {
+                  toast.error("Please enter the administrator's name.");
+                  return;
+                }
+                if (!/^\S+@\S+\.\S+$/.test(newOrgForm.adminEmail)) {
+                  toast.error("Please enter a valid administrator email.");
+                  return;
+                }
+                const created = createOrg({
+                  name: newOrgForm.name.trim(),
+                  adminName: newOrgForm.adminName.trim(),
+                  adminEmail: newOrgForm.adminEmail.trim(),
+                  password: newOrgForm.password || "khazna@2026",
+                });
+                setNewOrgOpen(false);
+                setNewOrgForm({ name: "", adminName: "", adminEmail: "", password: "" });
+                toast.success(`${created.name} workspace created! Ready to add sectors.`);
+                navigate({ to: "/admin" });
+              }}
+              className="space-y-3.5"
+            >
+              <div>
+                <label className="mb-1 block text-xs font-medium text-subtle">College / Organisation Name</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Markaz College or Darul Huda"
+                  value={newOrgForm.name}
+                  onChange={(e) => setNewOrgForm({ ...newOrgForm, name: e.target.value })}
+                  className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-subtle">Super Admin Name</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Principal / Finance Officer"
+                  value={newOrgForm.adminName}
+                  onChange={(e) => setNewOrgForm({ ...newOrgForm, adminName: e.target.value })}
+                  className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-subtle">Super Admin Email</label>
+                <input
+                  type="email"
+                  required
+                  placeholder="admin@college.edu.in"
+                  value={newOrgForm.adminEmail}
+                  onChange={(e) => setNewOrgForm({ ...newOrgForm, adminEmail: e.target.value })}
+                  className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-subtle">Admin Password (Optional)</label>
+                <input
+                  type="password"
+                  placeholder="Leave empty for default (khazna@2026)"
+                  value={newOrgForm.password}
+                  onChange={(e) => setNewOrgForm({ ...newOrgForm, password: e.target.value })}
+                  className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                />
+              </div>
+
+              <div className="mt-5 flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setNewOrgOpen(false)}
+                  className="rounded-xl px-4 py-2 text-xs font-medium text-muted-foreground hover:bg-white/5 sm:text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-xl bg-gradient-primary px-4 py-2 text-xs font-medium text-primary-foreground shadow-glow hover:opacity-90 sm:text-sm"
+                >
+                  Create & Open Workspace
+                </button>
+              </div>
+            </form>
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>
