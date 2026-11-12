@@ -148,7 +148,7 @@ function AdminDashboard() {
           Manage sectors →
         </Link>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
         {stats.perSector.map(({ sector, t, active }, i) => (
           <Link key={sector.slug} to="/m/$sectorSlug" params={{ sectorSlug: sector.slug }} className="block">
             <SectorTile sector={sector} value={t.balance} delay={0.05 * i}>

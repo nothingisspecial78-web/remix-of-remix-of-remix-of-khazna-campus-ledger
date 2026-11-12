@@ -291,51 +291,93 @@ function ImportPage() {
                 </FilterChip>
               </div>
               <TableShell>
-                <table className="k-table">
-                  <thead>
-                    <tr>
-                      <th>#</th>
-                      <th>Status</th>
-                      <th>Name</th>
-                      <th>Ad.No</th>
-                      <th>Class</th>
-                      <th>Phone</th>
-                      <th>Issues</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {shown.map((v) => (
-                      <motion.tr {...reveal()} key={v.idx} className={v.errors.length ? "bg-debit/[0.04]" : ""}>
-                        <td className="num text-subtle">{v.idx}</td>
-                        <td>
+                {/* Mobile Aesthetic Import Cards (No horizontal side-scrolling) */}
+                <div className="divide-y divide-hairline md:hidden">
+                  {shown.map((v, i) => (
+                    <motion.div
+                      key={v.idx}
+                      {...reveal(i)}
+                      className={cn("p-3.5 space-y-2", v.errors.length ? "bg-debit/[0.04]" : "")}
+                    >
+                      <div className="flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2">
+                          <span className="num font-semibold text-muted-foreground">#{v.idx}</span>
                           {v.errors.length ? (
-                            <Chip tone="debit" icon={XCircle}>
-                              Invalid
-                            </Chip>
+                            <Chip tone="debit" icon={XCircle}>Invalid</Chip>
                           ) : (
-                            <Chip tone="credit" icon={CheckCircle2}>
-                              Valid
-                            </Chip>
+                            <Chip tone="credit" icon={CheckCircle2}>Valid</Chip>
                           )}
-                        </td>
-                        <td className={v.student.name ? "text-foreground" : "italic text-subtle"}>{v.student.name || "missing"}</td>
-                        <td className="num text-muted-foreground">{v.student.id}</td>
-                        <td className="text-muted-foreground">{v.student.className}</td>
-                        <td className="num text-muted-foreground">{v.student.phone || "—"}</td>
-                        <td>
-                          <div className="flex flex-wrap gap-1">
-                            {v.errors.map((e) => (
-                              <Chip key={e} tone="debit">
-                                {e}
+                        </div>
+                        <span className="font-mono text-xs text-primary font-semibold">{v.student.id}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm font-medium text-foreground">
+                        <span>{v.student.name || "Missing Name"}</span>
+                        <Chip className="text-[10px] py-0">{v.student.className || "No class"}</Chip>
+                      </div>
+                      {v.student.phone && (
+                        <div className="text-xs text-muted-foreground num font-mono">
+                          Phone: {v.student.phone}
+                        </div>
+                      )}
+                      {v.errors.length > 0 && (
+                        <div className="flex flex-wrap gap-1 pt-1 border-t border-hairline/40">
+                          {v.errors.map((e) => (
+                            <Chip key={e} tone="debit">{e}</Chip>
+                          ))}
+                        </div>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
+
+                {/* Desktop Tabular Model */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="k-table">
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Status</th>
+                        <th>Name</th>
+                        <th>Ad.No</th>
+                        <th>Class</th>
+                        <th>Phone</th>
+                        <th>Issues</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {shown.map((v) => (
+                        <motion.tr {...reveal()} key={v.idx} className={v.errors.length ? "bg-debit/[0.04]" : ""}>
+                          <td className="num text-subtle">{v.idx}</td>
+                          <td>
+                            {v.errors.length ? (
+                              <Chip tone="debit" icon={XCircle}>
+                                Invalid
                               </Chip>
-                            ))}
-                            {!v.errors.length && <span className="text-xs text-subtle">—</span>}
-                          </div>
-                        </td>
-                      </motion.tr>
-                    ))}
-                  </tbody>
-                </table>
+                            ) : (
+                              <Chip tone="credit" icon={CheckCircle2}>
+                                Valid
+                              </Chip>
+                            )}
+                          </td>
+                          <td className={v.student.name ? "text-foreground" : "italic text-subtle"}>{v.student.name || "missing"}</td>
+                          <td className="num text-muted-foreground">{v.student.id}</td>
+                          <td className="text-muted-foreground">{v.student.className}</td>
+                          <td className="num text-muted-foreground">{v.student.phone || "—"}</td>
+                          <td>
+                            <div className="flex flex-wrap gap-1">
+                              {v.errors.map((e) => (
+                                <Chip key={e} tone="debit">
+                                  {e}
+                                </Chip>
+                              ))}
+                              {!v.errors.length && <span className="text-xs text-subtle">—</span>}
+                            </div>
+                          </td>
+                        </motion.tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </TableShell>
               <div className="mt-5 flex flex-col-reverse justify-between gap-3 sm:flex-row">
                 <Btn variant="ghost" onClick={() => setStep(1)}>

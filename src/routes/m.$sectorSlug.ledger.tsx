@@ -144,67 +144,137 @@ function LedgerPage() {
         {rows.length === 0 ? (
           <EmptyState icon={ReceiptText} title="No entries match" body="Adjust the filters or post a new entry." />
         ) : (
-          <table className="k-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Receipt</th>
-                <th>Student</th>
-                <th>Title</th>
-                <th>Type</th>
-                <th className="text-right">Amount</th>
-                <th className="text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody>
+          <>
+            {/* Mobile Aesthetic Ledger Cards (No horizontal side-scrolling) */}
+            <div className="divide-y divide-hairline md:hidden">
               {rows.map((t) => {
                 const st = byId.get(t.studentId);
                 return (
-                  <motion.tr {...reveal(0, 0, t.voided ? 0.55 : 1)} key={t.id}>
-                    <td className="num text-muted-foreground">{formatDate(t.date)}</td>
-                    <td className="font-mono text-xs text-muted-foreground">{t.receiptNo}</td>
-                    <td>
-                      <div className="flex items-center gap-2.5">
-                        <Avatar name={st?.name ?? "?"} size={28} />
-                        <div>
-                          <div className={cn("text-foreground", t.voided && "line-through")}>{st?.name}</div>
-                          <div className="text-xs text-subtle num">
+                  <motion.div
+                    key={t.id}
+                    {...reveal(0, 0, t.voided ? 0.55 : 1)}
+                    className="p-3.5 space-y-2.5 transition-colors active:bg-white/5"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <Avatar name={st?.name ?? "?"} size={34} />
+                        <div className="min-w-0">
+                          <div className={cn("font-medium text-foreground text-sm truncate", t.voided && "line-through")}>
+                            {st?.name ?? "Unknown"}
+                          </div>
+                          <div className="text-xs text-muted-foreground num">
                             {t.studentId} · {st?.className}
                           </div>
                         </div>
                       </div>
-                    </td>
-                    <td>
-                      <div className={cn("text-foreground", t.voided && "line-through")}>{t.title}</div>
-                      {t.voided ? (
-                        <div className="max-w-[16rem] truncate text-xs text-debit" title={t.voided.reason}>
-                          Void: {t.voided.reason}
+                      <div className="text-right shrink-0">
+                        <div className={cn("font-semibold text-sm", t.voided && "line-through")}>
+                          <Amount value={t.amount} type={t.type} />
                         </div>
-                      ) : t.reason ? (
-                        <div className="max-w-[16rem] truncate text-xs text-subtle">{t.reason}</div>
-                      ) : null}
-                    </td>
-                    <td>
-                      <div className="flex gap-1">
-                        {t.voided ? <Chip tone="neutral" icon={Ban}>Void</Chip> : t.type === "credit" ? <Chip tone="credit">Credit</Chip> : <Chip tone="debit">Debit</Chip>}
-                        {t.batchId && <Chip tone="info" icon={Layers}>{t.batchId}</Chip>}
+                        <div className="font-mono text-[11px] text-muted-foreground">
+                          {t.receiptNo}
+                        </div>
                       </div>
-                    </td>
-                    <td className={cn("text-right font-medium", t.voided && "line-through")}>
-                      <Amount value={t.amount} type={t.type} />
-                    </td>
-                    <td className="text-right">
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs pt-1 border-t border-hairline/40">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {t.voided ? (
+                          <Chip tone="neutral" icon={Ban}>Void</Chip>
+                        ) : t.type === "credit" ? (
+                          <Chip tone="credit">Credit</Chip>
+                        ) : (
+                          <Chip tone="debit">Debit</Chip>
+                        )}
+                        {t.batchId && <Chip tone="info" icon={Layers}>{t.batchId}</Chip>}
+                        <span className="text-muted-foreground num text-[11px]">{formatDate(t.date)}</span>
+                      </div>
                       {!t.voided && (
-                        <Btn variant="ghost" size="sm" onClick={() => setVoiding(t)}>
-                          <Ban /> Void
+                        <Btn variant="ghost" size="sm" onClick={() => setVoiding(t)} className="h-7 px-2 text-xs text-debit hover:bg-debit/10">
+                          <Ban className="size-3" /> Void
                         </Btn>
                       )}
-                    </td>
-                  </motion.tr>
+                    </div>
+
+                    {t.voided ? (
+                      <div className="text-xs text-debit bg-debit/10 rounded-lg p-2 mt-1">
+                        Voided: {t.voided.reason} (by {t.voided.by})
+                      </div>
+                    ) : t.title || t.reason ? (
+                      <div className="text-xs text-muted-foreground truncate">
+                        {t.title}{t.reason ? ` · ${t.reason}` : ""}
+                      </div>
+                    ) : null}
+                  </motion.div>
                 );
               })}
-            </tbody>
-          </table>
+            </div>
+
+            {/* Desktop Tabular Model */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="k-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Receipt</th>
+                    <th>Student</th>
+                    <th>Title</th>
+                    <th>Type</th>
+                    <th className="text-right">Amount</th>
+                    <th className="text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((t) => {
+                    const st = byId.get(t.studentId);
+                    return (
+                      <motion.tr {...reveal(0, 0, t.voided ? 0.55 : 1)} key={t.id}>
+                        <td className="num text-muted-foreground">{formatDate(t.date)}</td>
+                        <td className="font-mono text-xs text-muted-foreground">{t.receiptNo}</td>
+                        <td>
+                          <div className="flex items-center gap-2.5">
+                            <Avatar name={st?.name ?? "?"} size={28} />
+                            <div>
+                              <div className={cn("text-foreground", t.voided && "line-through")}>{st?.name}</div>
+                              <div className="text-xs text-subtle num">
+                                {t.studentId} · {st?.className}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <div className={cn("text-foreground", t.voided && "line-through")}>{t.title}</div>
+                          {t.voided ? (
+                            <div className="max-w-[16rem] truncate text-xs text-debit" title={t.voided.reason}>
+                              Void: {t.voided.reason}
+                            </div>
+                          ) : t.reason ? (
+                            <div className="max-w-[16rem] truncate text-xs text-subtle">{t.reason}</div>
+                          ) : null}
+                        </td>
+                        <td>
+                          <div className="flex gap-1">
+                            {t.voided ? <Chip tone="neutral" icon={Ban}>Void</Chip> : t.type === "credit" ? <Chip tone="credit">Credit</Chip> : <Chip tone="debit">Debit</Chip>}
+                            {t.batchId && <Chip tone="info" icon={Layers}>{t.batchId}</Chip>}
+                          </div>
+                        </td>
+                        <td className={cn("text-right font-medium", t.voided && "line-through")}>
+                          <Amount value={t.amount} type={t.type} />
+                        </td>
+                        <td className="text-right">
+                          {!t.voided && (
+                            <Btn variant="ghost" size="sm" onClick={() => setVoiding(t)}>
+                              <Ban /> Void
+                            </Btn>
+                          )}
+                        </td>
+                      </motion.tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
         <Pager page={page} pages={pages} onPage={setPage} total={filtered.length} label="entries" />
       </TableShell>

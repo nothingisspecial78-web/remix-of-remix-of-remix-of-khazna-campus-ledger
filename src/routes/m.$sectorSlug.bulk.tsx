@@ -427,61 +427,97 @@ function BulkPage() {
                 </div>
               )}
               <TableShell>
-                <table className="k-table">
-                  <thead>
-                    <tr>
-                      <th>#</th>
-                      <th>Student</th>
-                      <th>Ad.No</th>
-                      <th>Receipt</th>
-                      <th className="text-right">Before</th>
-                      <th className="text-center">Change</th>
-                      <th className="text-right">After</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {preview.map((p, i) => (
-                      <motion.tr key={p.s.id} {...reveal(i)}>
-                        <td className="num text-subtle">{i + 1}</td>
-                        <td>
-                          <div className="flex items-center gap-2.5">
-                            <Avatar name={p.s.name} size={28} />
-                            <span className="text-foreground">{p.s.name}</span>
+                {/* Mobile Aesthetic Bulk Preview Cards (No horizontal side-scrolling) */}
+                <div className="divide-y divide-hairline md:hidden">
+                  {preview.map((p, i) => (
+                    <motion.div key={p.s.id} {...reveal(i)} className="p-3.5 space-y-2 transition-colors active:bg-white/5">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <Avatar name={p.s.name} size={32} />
+                          <div className="min-w-0">
+                            <div className="font-medium text-foreground text-sm truncate">{p.s.name}</div>
+                            <div className="text-xs text-muted-foreground num">{p.s.id} · {p.s.className}</div>
                           </div>
-                        </td>
-                        <td className="num text-muted-foreground">{p.s.id}</td>
-                        <td className="font-mono text-xs text-muted-foreground">{p.receipt}</td>
-                        <td className="text-right text-muted-foreground">
-                          <Amount value={p.before} />
-                        </td>
-                        <td className="text-center">
-                          <span className={cn("inline-flex rounded-full border px-2.5 py-0.5 text-xs font-semibold num", type === "credit" ? "border-credit/30 bg-credit/12 text-credit" : "border-debit/30 bg-debit/12 text-debit")}>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <span className={cn("inline-flex rounded-full border px-2 py-0.5 text-xs font-semibold num", type === "credit" ? "border-credit/30 bg-credit/12 text-credit" : "border-debit/30 bg-debit/12 text-debit")}>
                             {formatINR(type === "credit" ? amt : -amt, { sign: true })}
                           </span>
+                          <div className="font-mono text-[10px] text-muted-foreground mt-0.5">{p.receipt}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between text-xs pt-1.5 border-t border-hairline/40 num">
+                        <span className="text-muted-foreground">Before: <Amount value={p.before} /></span>
+                        <span className="font-semibold text-foreground">After: <Amount value={p.after} /></span>
+                      </div>
+                    </motion.div>
+                  ))}
+                  <div className="p-3.5 bg-accent/40 rounded-b-xl border-t border-hairline flex items-center justify-between text-sm">
+                    <span className="font-semibold text-foreground">Batch Total ({chosen.length} students)</span>
+                    <span className={cn("font-bold num", type === "credit" ? "text-credit" : "text-debit")}>
+                      {formatINR(type === "credit" ? batchTotal : -batchTotal, { sign: true })}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Desktop Tabular Model */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="k-table">
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Student</th>
+                        <th>Ad.No</th>
+                        <th>Receipt</th>
+                        <th className="text-right">Before</th>
+                        <th className="text-center">Change</th>
+                        <th className="text-right">After</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {preview.map((p, i) => (
+                        <motion.tr key={p.s.id} {...reveal(i)}>
+                          <td className="num text-subtle">{i + 1}</td>
+                          <td>
+                            <div className="flex items-center gap-2.5">
+                              <Avatar name={p.s.name} size={28} />
+                              <span className="text-foreground">{p.s.name}</span>
+                            </div>
+                          </td>
+                          <td className="num text-muted-foreground">{p.s.id}</td>
+                          <td className="font-mono text-xs text-muted-foreground">{p.receipt}</td>
+                          <td className="text-right text-muted-foreground">
+                            <Amount value={p.before} />
+                          </td>
+                          <td className="text-center">
+                            <span className={cn("inline-flex rounded-full border px-2.5 py-0.5 text-xs font-semibold num", type === "credit" ? "border-credit/30 bg-credit/12 text-credit" : "border-debit/30 bg-debit/12 text-debit")}>
+                              {formatINR(type === "credit" ? amt : -amt, { sign: true })}
+                            </span>
+                          </td>
+                          <td className="text-right font-semibold">
+                            <Amount value={p.after} />
+                          </td>
+                        </motion.tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr className="bg-accent">
+                        <td colSpan={4} className="px-4 py-3 text-sm font-semibold text-foreground">
+                          Batch total · {chosen.length} students
                         </td>
-                        <td className="text-right font-semibold">
-                          <Amount value={p.after} />
+                        <td className="px-4 py-3 text-right text-muted-foreground">
+                          <Amount value={preview.reduce((a, p) => a + p.before, 0)} />
                         </td>
-                      </motion.tr>
-                    ))}
-                  </tbody>
-                  <tfoot>
-                    <tr className="bg-accent">
-                      <td colSpan={4} className="px-4 py-3 text-sm font-semibold text-foreground">
-                        Batch total · {chosen.length} students
-                      </td>
-                      <td className="px-4 py-3 text-right text-muted-foreground">
-                        <Amount value={preview.reduce((a, p) => a + p.before, 0)} />
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <span className={cn("font-semibold num", type === "credit" ? "text-credit" : "text-debit")}>{formatINR(type === "credit" ? batchTotal : -batchTotal, { sign: true })}</span>
-                      </td>
-                      <td className="px-4 py-3 text-right font-semibold">
-                        <Amount value={preview.reduce((a, p) => a + p.after, 0)} />
-                      </td>
-                    </tr>
-                  </tfoot>
-                </table>
+                        <td className="px-4 py-3 text-center">
+                          <span className={cn("font-semibold num", type === "credit" ? "text-credit" : "text-debit")}>{formatINR(type === "credit" ? batchTotal : -batchTotal, { sign: true })}</span>
+                        </td>
+                        <td className="px-4 py-3 text-right font-semibold">
+                          <Amount value={preview.reduce((a, p) => a + p.after, 0)} />
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
               </TableShell>
               <div className="mt-5 flex justify-between">
                 <Btn variant="ghost" onClick={() => setStep(1)}>

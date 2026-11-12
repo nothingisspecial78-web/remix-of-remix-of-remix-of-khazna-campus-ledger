@@ -119,7 +119,7 @@ function StudentHome() {
       <div className="mt-8 mb-3 flex items-center justify-between">
         <h2 className="text-lg font-semibold">My sectors</h2>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
         {d.per.map((p, i) => (
           <Link key={p.sector.slug} to="/app/s/$sectorSlug" params={{ sectorSlug: p.sector.slug }} className="block">
             <SectorTile sector={p.sector} value={p.t.balance} delay={0.05 * i}>

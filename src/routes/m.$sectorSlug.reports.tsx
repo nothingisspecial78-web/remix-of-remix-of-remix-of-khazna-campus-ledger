@@ -136,49 +136,97 @@ function ReportsPage() {
         {rows.length === 0 ? (
           <EmptyState icon={Table2} title="No students in this class" />
         ) : (
-          <table className="k-table">
-            <thead>
-              <tr>
-                <th>Student</th>
-                <th>Ad.No</th>
-                <th>Class</th>
-                <th className="text-right">Total credit</th>
-                <th className="text-right">Total debit</th>
-                <th className="text-right">Balance</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r) => (
-                <motion.tr {...reveal()} key={r.s.id}>
-                  <td>
-                    <div className="flex items-center gap-2.5">
-                      <Avatar name={r.s.name} size={28} />
-                      <span className="text-foreground">{r.s.name}</span>
+          <>
+            {/* Mobile Aesthetic Report Card Model (No horizontal side-scrolling) */}
+            <div className="divide-y divide-hairline md:hidden">
+              {rows.map((r, i) => (
+                <motion.div key={r.s.id} {...reveal(i)} className="p-3.5 space-y-2.5 transition-colors active:bg-white/5">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <Avatar name={r.s.name} size={34} />
+                      <div className="min-w-0">
+                        <div className="font-medium text-foreground text-sm truncate">{r.s.name}</div>
+                        <div className="text-xs text-muted-foreground num">{r.s.id} · {r.s.className}</div>
+                      </div>
                     </div>
-                  </td>
-                  <td className="num text-muted-foreground">{r.s.id}</td>
-                  <td className="text-muted-foreground">{r.s.className}</td>
-                  <td className="text-right text-credit num">{formatINR(r.credit)}</td>
-                  <td className="text-right text-debit num">{formatINR(r.debit)}</td>
-                  <td className="text-right font-semibold">
-                    <Amount value={r.balance} />
-                  </td>
-                </motion.tr>
+                    <div className="text-right shrink-0">
+                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Net Balance</div>
+                      <div className="font-semibold text-sm">
+                        <Amount value={r.balance} />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs pt-1.5 border-t border-hairline/40">
+                    <div className="rounded-lg bg-credit/10 p-2 border border-credit/20">
+                      <div className="text-[10px] text-credit font-medium uppercase tracking-wider">Credit</div>
+                      <div className="font-semibold text-credit num text-xs">+{formatINR(r.credit)}</div>
+                    </div>
+                    <div className="rounded-lg bg-debit/10 p-2 border border-debit/20">
+                      <div className="text-[10px] text-debit font-medium uppercase tracking-wider">Debit</div>
+                      <div className="font-semibold text-debit num text-xs">−{formatINR(r.debit)}</div>
+                    </div>
+                  </div>
+                </motion.div>
               ))}
-            </tbody>
-            <tfoot>
-              <motion.tr {...reveal()} className="bg-accent">
-                <td colSpan={3} className="px-4 py-3 font-semibold text-foreground">
-                  Totals · {rows.length} students
-                </td>
-                <td className="px-4 py-3 text-right font-semibold text-credit num">{formatINR(sum.credit)}</td>
-                <td className="px-4 py-3 text-right font-semibold text-debit num">{formatINR(sum.debit)}</td>
-                <td className="px-4 py-3 text-right font-semibold">
+              <div className="p-4 bg-accent/40 rounded-b-xl border-t border-hairline space-y-1.5">
+                <div className="flex justify-between items-center text-sm font-semibold text-foreground">
+                  <span>Totals ({rows.length} students)</span>
                   <Amount value={sum.balance} />
-                </td>
-              </motion.tr>
-            </tfoot>
-          </table>
+                </div>
+                <div className="flex justify-between text-xs num pt-1">
+                  <span className="text-credit font-medium">Credits: +{formatINR(sum.credit)}</span>
+                  <span className="text-debit font-medium">Debits: −{formatINR(sum.debit)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Desktop Tabular Model */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="k-table">
+                <thead>
+                  <tr>
+                    <th>Student</th>
+                    <th>Ad.No</th>
+                    <th>Class</th>
+                    <th className="text-right">Total credit</th>
+                    <th className="text-right">Total debit</th>
+                    <th className="text-right">Balance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((r) => (
+                    <motion.tr {...reveal()} key={r.s.id}>
+                      <td>
+                        <div className="flex items-center gap-2.5">
+                          <Avatar name={r.s.name} size={28} />
+                          <span className="text-foreground">{r.s.name}</span>
+                        </div>
+                      </td>
+                      <td className="num text-muted-foreground">{r.s.id}</td>
+                      <td className="text-muted-foreground">{r.s.className}</td>
+                      <td className="text-right text-credit num">{formatINR(r.credit)}</td>
+                      <td className="text-right text-debit num">{formatINR(r.debit)}</td>
+                      <td className="text-right font-semibold">
+                        <Amount value={r.balance} />
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <motion.tr {...reveal()} className="bg-accent">
+                    <td colSpan={3} className="px-4 py-3 font-semibold text-foreground">
+                      Totals · {rows.length} students
+                    </td>
+                    <td className="px-4 py-3 text-right font-semibold text-credit num">{formatINR(sum.credit)}</td>
+                    <td className="px-4 py-3 text-right font-semibold text-debit num">{formatINR(sum.debit)}</td>
+                    <td className="px-4 py-3 text-right font-semibold">
+                      <Amount value={sum.balance} />
+                    </td>
+                  </motion.tr>
+                </tfoot>
+              </table>
+            </div>
+          </>
         )}
       </TableShell>
     </div>

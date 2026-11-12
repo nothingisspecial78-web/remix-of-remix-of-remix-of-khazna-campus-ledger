@@ -461,6 +461,61 @@ export function AppShell({ role, sectorSlug, children }: { role: Role; sectorSlu
                 <X className="size-4" />
               </Dialog.Close>
             </div>
+
+            {/* Mobile College Workspace Switcher */}
+            <div className="mb-4">
+              <div className="px-1 pb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-subtle">College Workspace</div>
+              <KMenu
+                label="Switch college workspace"
+                trigger={
+                  <button className="glass-inset flex h-10 w-full items-center justify-between gap-2 px-3 text-xs text-foreground hover:bg-accent">
+                    <div className="flex items-center gap-2 truncate">
+                      <Building2 className="size-3.5 shrink-0 text-primary" />
+                      <span className="truncate font-medium">{college.name}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {college.demo ? (
+                        <span className="rounded bg-white/10 px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-muted-foreground">Demo</span>
+                      ) : (
+                        <span className="size-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />
+                      )}
+                      <ChevronDown className="size-3 text-muted-foreground" />
+                    </div>
+                  </button>
+                }
+              >
+                <div className="px-3 py-1.5 text-[10px] uppercase tracking-wider text-subtle">College Workspaces</div>
+                {organizations.map((org) => (
+                  <KMenuItem
+                    key={org.id}
+                    onSelect={() => {
+                      if (org.id !== college.id) {
+                        switchOrg(org.id);
+                        toast.success(`Switched to ${org.name}`);
+                        setMobileOpen(false);
+                        navigate({ to: "/admin" });
+                      }
+                    }}
+                    active={org.id === college.id}
+                  >
+                    <Building2 className="size-4" />
+                    <span className="flex-1 truncate">{org.name}</span>
+                    {org.demo && <span className="ml-1 text-[10px] text-muted-foreground">(Demo)</span>}
+                    {org.id === college.id && <Check className="size-4 text-primary" />}
+                  </KMenuItem>
+                ))}
+                <div className="my-1 border-t border-border/40" />
+                <KMenuItem
+                  onSelect={() => {
+                    setMobileOpen(false);
+                    setNewOrgOpen(true);
+                  }}
+                >
+                  <Plus className="size-4 text-primary" />
+                  <span className="font-medium text-primary">New Organisation…</span>
+                </KMenuItem>
+              </KMenu>
+            </div>
             <ContextCard role={role} sectorSlug={slug} />
             <NavList role={role} sectorSlug={slug} onNavigate={() => setMobileOpen(false)} />
           </Dialog.Content>

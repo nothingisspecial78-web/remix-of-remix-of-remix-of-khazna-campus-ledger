@@ -105,45 +105,83 @@ function AuditPage() {
         {rows.length === 0 ? (
           <EmptyState icon={ScrollText} title="No records match these filters" />
         ) : (
-          <table className="k-table">
-            <thead>
-              <tr>
-                <th>When</th>
-                <th>Actor</th>
-                <th>Action</th>
-                <th>Target</th>
-                <th>Details</th>
-                <th>Sector</th>
-                <th>IP</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((a) => {
+          <>
+            {/* Mobile Aesthetic Audit Timeline (No horizontal side-scrolling) */}
+            <div className="divide-y divide-hairline md:hidden">
+              {rows.map((a, i) => {
                 const Icon = AUDIT_ICON[a.action];
+                const secName = sectors.find((s) => s.slug === a.sector)?.name;
                 return (
-                  <motion.tr {...reveal()} key={a.id}>
-                    <td>
-                      <div className="text-foreground num">{formatDate(a.at)}</div>
-                      <div className="text-xs text-subtle num">{formatTime(a.at)}</div>
-                    </td>
-                    <td>
-                      <div className="text-foreground">{a.actor}</div>
-                      <div className="text-xs text-muted-foreground">{ROLE_LABEL[a.role]}</div>
-                    </td>
-                    <td>
+                  <motion.div key={a.id} {...reveal(i)} className="p-3.5 space-y-2 transition-colors active:bg-white/5">
+                    <div className="flex items-center justify-between text-xs">
                       <Chip tone={auditTone(a.action)} icon={Icon}>
                         {a.action.replace(/_/g, " ")}
                       </Chip>
-                    </td>
-                    <td className="text-foreground">{a.target}</td>
-                    <td className="max-w-xs truncate text-muted-foreground">{a.details}</td>
-                    <td className="text-muted-foreground">{sectors.find((s) => s.slug === a.sector)?.name ?? "—"}</td>
-                    <td className="font-mono text-xs text-subtle">{a.ip}</td>
-                  </motion.tr>
+                      <span className="text-muted-foreground num text-[11px]">
+                        {formatDate(a.at)} · {formatTime(a.at)}
+                      </span>
+                    </div>
+                    <div className="text-sm font-medium text-foreground">
+                      {a.target}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {a.details}
+                    </div>
+                    <div className="flex items-center justify-between text-[11px] text-muted-foreground/80 pt-1.5 border-t border-hairline/40">
+                      <span>By {a.actor} ({ROLE_LABEL[a.role]})</span>
+                      <div className="flex items-center gap-2">
+                        {secName && <span className="text-primary font-medium">{secName}</span>}
+                        <span className="font-mono text-[10px] text-subtle">{a.ip}</span>
+                      </div>
+                    </div>
+                  </motion.div>
                 );
               })}
-            </tbody>
-          </table>
+            </div>
+
+            {/* Desktop Tabular Model */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="k-table">
+                <thead>
+                  <tr>
+                    <th>When</th>
+                    <th>Actor</th>
+                    <th>Action</th>
+                    <th>Target</th>
+                    <th>Details</th>
+                    <th>Sector</th>
+                    <th>IP</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((a) => {
+                    const Icon = AUDIT_ICON[a.action];
+                    return (
+                      <motion.tr {...reveal()} key={a.id}>
+                        <td>
+                          <div className="text-foreground num">{formatDate(a.at)}</div>
+                          <div className="text-xs text-subtle num">{formatTime(a.at)}</div>
+                        </td>
+                        <td>
+                          <div className="text-foreground">{a.actor}</div>
+                          <div className="text-xs text-muted-foreground">{ROLE_LABEL[a.role]}</div>
+                        </td>
+                        <td>
+                          <Chip tone={auditTone(a.action)} icon={Icon}>
+                            {a.action.replace(/_/g, " ")}
+                          </Chip>
+                        </td>
+                        <td className="text-foreground">{a.target}</td>
+                        <td className="max-w-xs truncate text-muted-foreground">{a.details}</td>
+                        <td className="text-muted-foreground">{sectors.find((s) => s.slug === a.sector)?.name ?? "—"}</td>
+                        <td className="font-mono text-xs text-subtle">{a.ip}</td>
+                      </motion.tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
         <Pager page={page} pages={pages} onPage={setPage} total={filtered.length} label="records" />
       </TableShell>

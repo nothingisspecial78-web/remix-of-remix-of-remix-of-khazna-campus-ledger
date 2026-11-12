@@ -90,35 +90,81 @@ function StudentSectorLedger() {
         {rows.length === 0 ? (
           <EmptyState icon={ReceiptText} title="No transactions yet" body="Entries posted by the sector will appear here." />
         ) : (
-          <table className="k-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Receipt</th>
-                <th>Description</th>
-                <th className="text-right">Credit</th>
-                <th className="text-right">Debit</th>
-                <th className="text-right">Running balance</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((r) => (
-                <motion.tr {...reveal(0, 0, r.voided ? 0.55 : 1)} key={r.id}>
-                  <td className="num text-muted-foreground">{formatDate(r.date)}</td>
-                  <td className="font-mono text-xs text-muted-foreground">{r.receiptNo}</td>
-                  <td>
-                    <div className={cn("text-foreground", r.voided && "line-through")}>{r.title}</div>
-                    {r.voided ? <div className="text-xs text-debit">Voided · {r.voided.reason}</div> : r.reason ? <div className="text-xs text-subtle">{r.reason}</div> : null}
-                  </td>
-                  <td className={cn("text-right text-credit num", r.voided && "line-through")}>{r.type === "credit" ? <Amount value={r.amount} /> : <span className="text-subtle">—</span>}</td>
-                  <td className={cn("text-right text-debit num", r.voided && "line-through")}>{r.type === "debit" ? <Amount value={r.amount} /> : <span className="text-subtle">—</span>}</td>
-                  <td className="text-right font-semibold">
-                    {r.voided ? <Chip>Void</Chip> : <Amount value={r.running} />}
-                  </td>
-                </motion.tr>
+          <>
+            {/* Mobile Aesthetic Transaction Cards (No horizontal side-scrolling) */}
+            <div className="divide-y divide-hairline md:hidden">
+              {rows.map((r, i) => (
+                <motion.div
+                  key={r.id}
+                  {...reveal(0, 0, r.voided ? 0.55 : 1)}
+                  className="p-3.5 space-y-2 transition-colors active:bg-white/5"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className={cn("text-sm font-medium text-foreground truncate", r.voided && "line-through")}>
+                        {r.title}
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground num pt-0.5">
+                        <span className="font-mono text-primary font-medium">{r.receiptNo}</span>
+                        <span>•</span>
+                        <span>{formatDate(r.date)}</span>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className={cn("text-sm font-semibold", r.voided && "line-through", r.type === "credit" ? "text-credit" : "text-debit")}>
+                        {r.type === "credit" ? "+" : "−"}<Amount value={r.amount} />
+                      </div>
+                      <div className="text-[10px] text-muted-foreground num">
+                        Bal: <Amount value={r.running} />
+                      </div>
+                    </div>
+                  </div>
+                  {r.voided ? (
+                    <div className="text-xs text-debit bg-debit/10 rounded-lg p-2">
+                      Voided · {r.voided.reason}
+                    </div>
+                  ) : r.reason ? (
+                    <div className="text-xs text-muted-foreground">
+                      {r.reason}
+                    </div>
+                  ) : null}
+                </motion.div>
               ))}
-            </tbody>
-          </table>
+            </div>
+
+            {/* Desktop Tabular Model */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="k-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Receipt</th>
+                    <th>Description</th>
+                    <th className="text-right">Credit</th>
+                    <th className="text-right">Debit</th>
+                    <th className="text-right">Running balance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((r) => (
+                    <motion.tr {...reveal(0, 0, r.voided ? 0.55 : 1)} key={r.id}>
+                      <td className="num text-muted-foreground">{formatDate(r.date)}</td>
+                      <td className="font-mono text-xs text-muted-foreground">{r.receiptNo}</td>
+                      <td>
+                        <div className={cn("text-foreground", r.voided && "line-through")}>{r.title}</div>
+                        {r.voided ? <div className="text-xs text-debit">Voided · {r.voided.reason}</div> : r.reason ? <div className="text-xs text-subtle">{r.reason}</div> : null}
+                      </td>
+                      <td className={cn("text-right text-credit num", r.voided && "line-through")}>{r.type === "credit" ? <Amount value={r.amount} /> : <span className="text-subtle">—</span>}</td>
+                      <td className={cn("text-right text-debit num", r.voided && "line-through")}>{r.type === "debit" ? <Amount value={r.amount} /> : <span className="text-subtle">—</span>}</td>
+                      <td className="text-right font-semibold">
+                        {r.voided ? <Chip>Void</Chip> : <Amount value={r.running} />}
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </TableShell>
     </div>

@@ -255,8 +255,8 @@ export function FilterChip({ active, onClick, children }: { active: boolean; onC
 
 export function TableShell({ children, className }: { children: ReactNode; className?: string | undefined }) {
   return (
-    <motion.div {...reveal()} className={cn("glass overflow-hidden", className)}>
-      <div className="overflow-x-auto">{children}</div>
+    <motion.div {...reveal()} className={cn("glass overflow-hidden w-full", className)}>
+      <div className="w-full">{children}</div>
     </motion.div>
   );
 }

@@ -105,45 +105,93 @@ function StudentsPage() {
         {rows.length === 0 ? (
           <EmptyState icon={Users} title="No students match" body="Try a different name, Ad.No or class filter." />
         ) : (
-          <table className="k-table">
-            <thead>
-              <tr>
-                <th>Student</th>
-                <th>Ad.No</th>
-                <th>Class</th>
-                <th>Phone</th>
-                <th>Sectors</th>
-                <th className="text-right">Combined balance</th>
-              </tr>
-            </thead>
-            <tbody>
+          <>
+            {/* Mobile Aesthetic Card Model (No horizontal side-scrolling) */}
+            <div className="divide-y divide-hairline md:hidden">
               {rows.map((s, i) => {
                 const b = balances.get(s.id);
                 return (
-                  <motion.tr key={s.id} {...reveal(i)} className="cursor-pointer" onClick={() => setViewing(s)}>
-                    <td>
-                      <div className="flex items-center gap-3">
-                        <Avatar name={s.name} size={32} />
-                        <div>
-                          <div className="font-medium text-foreground">{s.name}</div>
-                          <div className="text-xs text-muted-foreground">c/o {s.guardian}</div>
+                  <motion.div
+                    key={s.id}
+                    {...reveal(i)}
+                    className="flex flex-col gap-2.5 p-3.5 transition-colors active:bg-white/5 cursor-pointer"
+                    onClick={() => setViewing(s)}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <Avatar name={s.name} size={36} />
+                        <div className="min-w-0">
+                          <div className="font-medium text-foreground text-sm truncate">{s.name}</div>
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground num">
+                            <span className="font-semibold text-primary">{s.id}</span>
+                            <span>•</span>
+                            <Chip className="text-[10px] py-0 px-1.5">{s.className}</Chip>
+                          </div>
                         </div>
                       </div>
-                    </td>
-                    <td className="num text-muted-foreground">{s.id}</td>
-                    <td>
-                      <Chip>{s.className}</Chip>
-                    </td>
-                    <td className="num text-muted-foreground">{s.phone}</td>
-                    <td className="num text-muted-foreground">{b?.sectors.size ?? 0}</td>
-                    <td className="text-right font-medium">
-                      <Amount value={b?.balance ?? 0} />
-                    </td>
-                  </motion.tr>
+                      <div className="text-right shrink-0">
+                        <div className="text-sm font-semibold">
+                          <Amount value={b?.balance ?? 0} />
+                        </div>
+                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                          {b?.sectors.size ?? 0} sector{b?.sectors.size === 1 ? "" : "s"}
+                        </div>
+                      </div>
+                    </div>
+                    {(s.phone || s.guardian) && (
+                      <div className="flex items-center justify-between text-xs text-muted-foreground/80 pt-1 border-t border-hairline/40">
+                        <span className="truncate">c/o {s.guardian}</span>
+                        {s.phone && <span className="font-mono text-[11px] num">{s.phone}</span>}
+                      </div>
+                    )}
+                  </motion.div>
                 );
               })}
-            </tbody>
-          </table>
+            </div>
+
+            {/* Desktop Tabular Model */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="k-table">
+                <thead>
+                  <tr>
+                    <th>Student</th>
+                    <th>Ad.No</th>
+                    <th>Class</th>
+                    <th>Phone</th>
+                    <th>Sectors</th>
+                    <th className="text-right">Combined balance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((s, i) => {
+                    const b = balances.get(s.id);
+                    return (
+                      <motion.tr key={s.id} {...reveal(i)} className="cursor-pointer" onClick={() => setViewing(s)}>
+                        <td>
+                          <div className="flex items-center gap-3">
+                            <Avatar name={s.name} size={32} />
+                            <div>
+                              <div className="font-medium text-foreground">{s.name}</div>
+                              <div className="text-xs text-muted-foreground">c/o {s.guardian}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="num text-muted-foreground">{s.id}</td>
+                        <td>
+                          <Chip>{s.className}</Chip>
+                        </td>
+                        <td className="num text-muted-foreground">{s.phone}</td>
+                        <td className="num text-muted-foreground">{b?.sectors.size ?? 0}</td>
+                        <td className="text-right font-medium">
+                          <Amount value={b?.balance ?? 0} />
+                        </td>
+                      </motion.tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
         <Pager page={page} pages={pages} onPage={setPage} total={filtered.length} label="students" />
       </TableShell>
