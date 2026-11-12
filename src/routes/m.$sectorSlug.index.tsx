@@ -6,7 +6,7 @@ import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YA
 import { Btn } from "@/components/khazna/btn";
 import { NewEntryDialog, type EntryPreset } from "@/components/khazna/NewEntryDialog";
 import { Amount, Avatar, CountUp, EmptyState, GlassCard, StatCard } from "@/components/khazna/primitives";
-import { SECTOR_ICON, tileVar } from "@/components/khazna/sector-meta";
+import { sectorIcon, tileVar } from "@/components/khazna/sector-meta";
 import { asSector } from "@/lib/khazna/data";
 import { formatCompactINR, formatINR, formatShortDate } from "@/lib/khazna/format";
 import { totals } from "@/lib/khazna/ledger";
@@ -35,7 +35,7 @@ function SectorOverview() {
   const students = useKhazna((s) => s.students);
   const [entryOpen, setEntryOpen] = useState(false);
   const [preset, setPreset] = useState<EntryPreset | undefined>(undefined);
-  const Icon = SECTOR_ICON[slug];
+  const Icon = sectorIcon(slug);
 
   const d = useMemo(() => {
     const all = totals(txs, { sector: slug });

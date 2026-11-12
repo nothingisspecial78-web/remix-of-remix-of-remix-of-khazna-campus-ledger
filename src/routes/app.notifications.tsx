@@ -4,7 +4,7 @@ import { AlertTriangle, ArrowDownLeft, ArrowRight, ArrowUpRight, Bell, BellOff, 
 import { useState } from "react";
 import { Btn } from "@/components/khazna/btn";
 import { Chip, EmptyState, PageHeader } from "@/components/khazna/primitives";
-import { SECTOR_ICON, tileVar } from "@/components/khazna/sector-meta";
+import { sectorIcon, tileVar } from "@/components/khazna/sector-meta";
 import { formatDate, formatTime, timeAgo } from "@/lib/khazna/format";
 import { useKhazna } from "@/lib/khazna/store";
 import type { Notice, Sector } from "@/lib/khazna/types";
@@ -40,7 +40,7 @@ function NoticeIcon({ sector, size = "size-10" }: { sector: Sector | undefined; 
       </span>
     );
   }
-  const Icon = SECTOR_ICON[sector.slug];
+  const Icon = sectorIcon(sector.slug);
   return (
     <span className={cn("tile-icon shrink-0", size)} style={tileVar(sector.color)}>
       <Icon className="size-4" />

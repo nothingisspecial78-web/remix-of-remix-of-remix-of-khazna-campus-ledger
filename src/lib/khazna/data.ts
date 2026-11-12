@@ -115,7 +115,11 @@ const SECTOR_CREATOR: Record<SectorSlug, string> = {
 
 let txSeq = 1;
 const receiptSeq: Record<SectorSlug, number> = { office: 1040, "ihsan-union": 310, "velitcham-welfare": 520, "dept-fiqh": 220, "dept-civil": 180 };
-const nextReceipt = (s: Sector) => `${s.receiptPrefix}${receiptSeq[s.slug]++}`;
+const nextReceipt = (s: Sector) => {
+  const n = receiptSeq[s.slug] ?? 1;
+  receiptSeq[s.slug] = n + 1;
+  return `${s.receiptPrefix}${n}`;
+};
 const txId = () => `TX${String(txSeq++).padStart(5, "0")}`;
 
 const AMOUNTS: Record<string, [number, number]> = {
@@ -154,7 +158,7 @@ for (const st of STUDENTS) {
         amount: Math.max(50, amount),
         date: addDays(TODAY, -day),
         receiptNo: nextReceipt(sec),
-        createdBy: SECTOR_CREATOR[sec.slug],
+        createdBy: managerNameFor(sec.slug),
       });
       day = Math.max(0, day - between(6, 30));
     }
@@ -180,11 +184,11 @@ function seedBatch(id: string, sector: SectorSlug, title: string, type: "credit"
       date,
       receiptNo: `${prefix}${String(i + 1).padStart(3, "0")}`,
       batchId: id,
-      createdBy: SECTOR_CREATOR[sector],
+      createdBy: managerNameFor(sector),
       voided: voided ? { ...voided } : undefined,
     });
   });
-  return { id, sector, title, type, reason: type === "debit" ? `${title} — batch ${id}` : undefined, amount, date, receiptPrefix: prefix, studentIds: studs.map((s) => s.id), createdBy: SECTOR_CREATOR[sector], createdAt: `${date}T10:${10 + daysAgo}:00Z`, voided };
+  return { id, sector, title, type, reason: type === "debit" ? `${title} — batch ${id}` : undefined, amount, date, receiptPrefix: prefix, studentIds: studs.map((s) => s.id), createdBy: managerNameFor(sector), createdAt: `${date}T10:${10 + daysAgo}:00Z`, voided };
 }
 
 export const BATCHES: Batch[] = [
@@ -249,6 +253,8 @@ export const NOTICES: Notice[] = [
 
 export const SUPER_ADMIN = { name: "Abdulla K.", title: "Principal · Super Admin", email: "principal@islahululoom.edu.in" };
 export const DEFAULT_MANAGER_SECTOR: SectorSlug = "dept-fiqh";
-export const managerNameFor = (s: SectorSlug) => SECTOR_CREATOR[s] ?? "Sector manager";
+export function managerNameFor(s: SectorSlug) {
+  return SECTOR_CREATOR[s] ?? "Sector manager";
+}
 
 export const asSector = (s: string): SectorSlug => s;

@@ -4,12 +4,12 @@ import type { ReactNode } from "react";
 import type { Sector } from "@/lib/khazna/types";
 import { cn } from "@/lib/utils";
 import { CountUp } from "./primitives";
-import { SECTOR_ICON, tileVar } from "./sector-meta";
+import { sectorIcon, tileVar } from "./sector-meta";
 import { formatINR } from "@/lib/khazna/format";
 import { reveal } from "./motion";
 
 export function SectorTile({ sector, value, label = "Balance", children, delay = 0, className }: { sector: Sector; value: number; label?: string | undefined; children?: ReactNode | undefined; delay?: number | undefined; className?: string | undefined }) {
-  const Icon = SECTOR_ICON[sector.slug];
+  const Icon = sectorIcon(sector.slug);
   return (
     <motion.div
       {...reveal(0, delay)}

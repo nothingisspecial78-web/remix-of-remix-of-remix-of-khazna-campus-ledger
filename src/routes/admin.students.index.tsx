@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Btn } from "@/components/khazna/btn";
 import { KDrawer } from "@/components/khazna/overlays";
 import { Amount, Avatar, Chip, EmptyState, Field, FilterChip, PageHeader, Pager, SearchInput, TableShell } from "@/components/khazna/primitives";
-import { SECTOR_ICON, tileVar } from "@/components/khazna/sector-meta";
+import { sectorIcon, tileVar } from "@/components/khazna/sector-meta";
 import { downloadCSV } from "@/lib/khazna/download";
 import { formatDate, formatINR, TODAY } from "@/lib/khazna/format";
 import { totals } from "@/lib/khazna/ledger";
@@ -247,7 +247,7 @@ function StudentDrawer({ student, onClose }: { student: Student | null; onClose:
       <div className="mt-4 grid grid-cols-2 gap-2">
         {sectors.map((s) => {
           const t = totals(txs, { studentId: student.id, sector: s.slug });
-          const Icon = SECTOR_ICON[s.slug];
+          const Icon = sectorIcon(s.slug);
           return (
             <div key={s.slug} className="tile-glossy p-3" style={tileVar(s.color)}>
               <div className="relative flex items-center gap-2">

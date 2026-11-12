@@ -37,3 +37,6 @@ use the editor.
 - Scroll-in animation comes from `reveal()` in src/components/khazna/motion.ts (GlassCard, TableShell, SectorTile already use it) — spread it on new cards/rows instead of hand-writing initial/animate so motion stays consistent; pass a resting opacity instead of opacity-* classes, which motion's inline style would override.
 - The login → dashboard hand-off uses a one-shot client flag in src/lib/khazna/sign-in-transition.ts that AppShell reads on mount — keeps the reveal off for normal navigation and SSR.
 - Hover lift on cards uses the `hover-lift` utility, which animates the CSS `translate` property rather than `transform` — framer-motion writes inline transforms that would otherwise cancel it.
+
+- Sectors are dynamic (`SectorSlug` is a string): look icons up with `sectorIcon()` and guard sector routes against the store's sector list, because a signed-up college creates its own sectors at runtime.
+- College sign-up (`signUpCollege`) swaps the store to an empty college and "Try demo" (`loadDemo`) restores the seed — keep both client-side so the preview needs no backend.

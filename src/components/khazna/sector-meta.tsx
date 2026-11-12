@@ -12,9 +12,7 @@ const KNOWN_ICONS: Record<string, LucideIcon> = {
 };
 
 /** Icon per sector; sectors added by an admin fall back to a generic icon. */
-export const SECTOR_ICON: Record<SectorSlug, LucideIcon> = new Proxy(KNOWN_ICONS, {
-  get: (t, k: string) => t[k] ?? Layers,
-});
+export const sectorIcon = (slug: SectorSlug): LucideIcon => KNOWN_ICONS[slug] ?? Layers;
 
 /** Colour choices offered when an admin creates a sector. */
 export const SECTOR_COLOR_CHOICES = [

@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Btn } from "@/components/khazna/btn";
 import { SectorTile } from "@/components/khazna/SectorTile";
 import { Amount, Chip, CountUp, GlassCard } from "@/components/khazna/primitives";
-import { SECTOR_ICON, tileVar } from "@/components/khazna/sector-meta";
+import { sectorIcon, tileVar } from "@/components/khazna/sector-meta";
 import { downloadCSV } from "@/lib/khazna/download";
 import { formatDate, formatINR, formatShortDate, timeAgo, TODAY } from "@/lib/khazna/format";
 import { totals } from "@/lib/khazna/ledger";
@@ -145,7 +145,7 @@ function StudentHome() {
           <ul className="mt-3 divide-y divide-hairline">
             {d.mine.slice(0, 8).map((t, i) => {
               const s = sectors.find((x) => x.slug === t.sector)!;
-              const Icon = SECTOR_ICON[t.sector];
+              const Icon = sectorIcon(t.sector);
               return (
                 <motion.li key={t.id} {...reveal(i)} className="flex items-center gap-3 py-3">
                   <span className="tile-icon size-9 shrink-0" style={tileVar(s.color)}>

@@ -1,15 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { GraduationCap, Pencil, Plus, Save, Users, X } from "lucide-react";
+import { Check, GraduationCap, Pencil, Plus, Save, Users, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Btn } from "@/components/khazna/btn";
 import { KDrawer } from "@/components/khazna/overlays";
 import { Amount, Avatar, Field, GlassCard, PageHeader } from "@/components/khazna/primitives";
-import { SECTOR_ICON, tileVar } from "@/components/khazna/sector-meta";
+import { SECTOR_COLOR_CHOICES, sectorIcon, tileVar } from "@/components/khazna/sector-meta";
 import { formatCompactINR } from "@/lib/khazna/format";
 import { totals } from "@/lib/khazna/ledger";
 import { useKhazna } from "@/lib/khazna/store";
+import { cn } from "@/lib/utils";
 import type { Sector } from "@/lib/khazna/types";
 import { reveal } from "@/components/khazna/motion";
 
@@ -17,7 +18,7 @@ export const Route = createFileRoute("/admin/sectors")({
   head: () => ({
     meta: [
       { title: "Sectors & Classes — Khazna" },
-      { name: "description", content: "Manage Islahul Uloom's five finance sectors, their targets and the class list." },
+      { name: "description", content: "Create and manage your college's finance sectors, targets and class list." },
       { property: "og:title", content: "Sectors & Classes — Khazna" },
       { property: "og:description", content: "Manage finance sectors, targets and classes." },
       { property: "og:type", content: "website" },
@@ -37,6 +38,7 @@ function SectorsPage() {
   const removeClass = useKhazna((s) => s.removeClass);
   const [editing, setEditing] = useState<Sector | null>(null);
   const [newClass, setNewClass] = useState("");
+  const [adding, setAdding] = useState(false);
 
   const classCounts = useMemo(() => {
     const m = new Map<string, number>();
@@ -46,13 +48,22 @@ function SectorsPage() {
 
   return (
     <div>
-      <PageHeader eyebrow="Structure" title="Sectors & classes" description="Each sector keeps its own ledger, receipt series and collection target." />
+      <PageHeader
+        eyebrow="Structure"
+        title="Sectors & classes"
+        description="Each sector keeps its own ledger, receipt series and collection target."
+        actions={
+          <Btn variant="primary" onClick={() => setAdding(true)}>
+            <Plus /> Add sector
+          </Btn>
+        }
+      />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {sectors.map((s, i) => {
           const t = totals(txs, { sector: s.slug });
           const p = Math.min(1, t.credit / s.target);
-          const Icon = SECTOR_ICON[s.slug];
+          const Icon = sectorIcon(s.slug);
           const mgrs = managers.filter((m) => m.sectors.includes(s.slug));
           return (
             <motion.div key={s.slug} {...reveal(i)} className="glass hover-lift overflow-hidden" style={tileVar(s.color)}>
@@ -106,6 +117,11 @@ function SectorsPage() {
             </motion.div>
           );
         })}
+        <button onClick={() => setAdding(true)} className="flex min-h-[14rem] flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-glass-border text-muted-foreground transition-colors hover:border-primary/50 hover:text-primary">
+          <Plus className="size-6" />
+          <span className="text-sm font-medium">{sectors.length ? "Add another sector" : "Add your first sector"}</span>
+          <span className="text-xs text-subtle">e.g. Office, Students' Union, a department</span>
+        </button>
       </div>
 
       <GlassCard className="mt-8 p-6">
@@ -168,6 +184,7 @@ function SectorsPage() {
         </div>
       </GlassCard>
 
+      <AddSectorDrawer open={adding} onOpenChange={setAdding} />
       <EditSectorDrawer sector={editing} onClose={() => setEditing(null)} />
     </div>
   );
@@ -223,6 +240,83 @@ function EditSectorDrawer({ sector, onClose }: { sector: Sector | null; onClose:
         </Field>
         <Field label="Receipt prefix" hint="Used for single entries, e.g. OF-1042">
           <input className="k-input num" value={form.receiptPrefix} onChange={(e) => setForm({ ...form, receiptPrefix: e.target.value })} />
+        </Field>
+      </div>
+    </KDrawer>
+  );
+}
+
+function AddSectorDrawer({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
+  const addSector = useKhazna((s) => s.addSector);
+  const sectors = useKhazna((s) => s.sectors);
+  const empty = { name: "", description: "", target: "", receiptPrefix: "", color: SECTOR_COLOR_CHOICES[0]!.value };
+  const [form, setForm] = useState(empty);
+  const [touched, setTouched] = useState(false);
+  const errors = {
+    name: form.name.trim().length < 2 ? "Enter a sector name" : sectors.some((s) => s.name.toLowerCase() === form.name.trim().toLowerCase()) ? "A sector with this name exists" : "",
+    target: Number(form.target) < 1000 ? "Target must be at least ₹1,000" : "",
+  };
+  const ok = !errors.name && !errors.target;
+  const autoPrefix = form.name.trim().split(/\s+/).map((w) => w[0] ?? "").join("").slice(0, 3).toUpperCase();
+  return (
+    <KDrawer
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Add a sector"
+      description="A sector has its own ledger, receipts and manager."
+      footer={
+        <>
+          <Btn variant="ghost" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Btn>
+          <Btn
+            variant="primary"
+            onClick={() => {
+              setTouched(true);
+              if (!ok) return;
+              const prefix = (form.receiptPrefix.trim() || `${autoPrefix}-`).toUpperCase();
+              const s = addSector({ name: form.name.trim(), description: form.description.trim() || `${form.name.trim()} ledger`, target: Number(form.target), receiptPrefix: prefix, color: form.color });
+              toast.success(`${s.name} created`, { description: "Next, add a manager for it on the Admins page." });
+              setForm(empty);
+              setTouched(false);
+              onOpenChange(false);
+            }}
+          >
+            <Check /> Create sector
+          </Btn>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        <Field label="Sector name" required error={touched ? errors.name : ""}>
+          <input className="k-input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Students' Union" />
+        </Field>
+        <Field label="Description">
+          <textarea className="k-input h-20 py-2" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="What this sector collects for" />
+        </Field>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="Term target (₹)" required error={touched ? errors.target : ""}>
+            <input className="k-input num" inputMode="numeric" value={form.target} onChange={(e) => setForm({ ...form, target: e.target.value.replace(/\D/g, "") })} placeholder="e.g. 250000" />
+          </Field>
+          <Field label="Receipt prefix">
+            <input className="k-input num" value={form.receiptPrefix} onChange={(e) => setForm({ ...form, receiptPrefix: e.target.value })} placeholder={autoPrefix ? `${autoPrefix}-` : "SU-"} />
+          </Field>
+        </div>
+        <Field label="Colour">
+          <div className="flex gap-2">
+            {SECTOR_COLOR_CHOICES.map((c) => (
+              <button
+                key={c.value}
+                type="button"
+                aria-label={c.label}
+                onClick={() => setForm({ ...form, color: c.value })}
+                className={cn("grid size-9 place-items-center rounded-full bg-tile text-primary-foreground ring-offset-2 ring-offset-background transition-all", form.color === c.value && "ring-2 ring-tile")}
+                style={tileVar(c.value)}
+              >
+                {form.color === c.value && <Check className="size-4" />}
+              </button>
+            ))}
+          </div>
         </Field>
       </div>
     </KDrawer>

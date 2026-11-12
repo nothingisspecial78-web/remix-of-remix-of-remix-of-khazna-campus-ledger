@@ -10,3 +10,8 @@
 - [x] Scroll-reveal animations across pages
 - [x] Light-mode redesign (clean light glass), less generic look
 - [x] Hover lift/glow, animated charts/numbers, moving background shimmer, page slide transitions
+- [x] College sign-up (Super Admin only), keep "Try demo"
+- [x] Admin adds sectors; managers added one by one or by bulk upload with template
+- [x] Students sign in with admission number only
+- [x] Student upload: template download (admission number, name, class, optional phone)
+- [x] Answer user: suggest next steps after remix (asked again)

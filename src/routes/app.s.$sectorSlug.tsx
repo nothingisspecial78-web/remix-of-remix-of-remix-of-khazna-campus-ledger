@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import { toast } from "sonner";
 import { Btn } from "@/components/khazna/btn";
 import { Amount, Chip, CountUp, EmptyState, StatCard, TableShell } from "@/components/khazna/primitives";
-import { SECTOR_ICON, tileVar } from "@/components/khazna/sector-meta";
+import { sectorIcon, tileVar } from "@/components/khazna/sector-meta";
 import { asSector } from "@/lib/khazna/data";
 import { downloadCSV } from "@/lib/khazna/download";
 import { formatDate, TODAY } from "@/lib/khazna/format";
@@ -36,7 +36,7 @@ function StudentSectorLedger() {
   const sector = useKhazna((s) => s.sectors.find((x) => x.slug === slug)!);
   const meId = useKhazna((s) => s.meStudentId);
   const txs = useKhazna((s) => s.transactions);
-  const Icon = SECTOR_ICON[slug];
+  const Icon = sectorIcon(slug);
 
   const { rows, t } = useMemo(() => {
     const mine = txs.filter((x) => x.studentId === meId && x.sector === slug);

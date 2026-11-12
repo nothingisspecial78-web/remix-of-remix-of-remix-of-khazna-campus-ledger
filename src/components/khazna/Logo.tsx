@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Vault } from "lucide-react";
 import { useKhazna } from "@/lib/khazna/store";
 
-export function Logo({ size = "md" }: { size?: "md" | "lg" }) {
+export function Logo({ size = "md", tagline }: { size?: "md" | "lg"; tagline?: string }) {
   const lg = size === "lg";
   const college = useKhazna((s) => s.college.name);
   return (
@@ -14,7 +14,7 @@ export function Logo({ size = "md" }: { size?: "md" | "lg" }) {
         <span className={`flex items-baseline gap-1.5 font-display font-semibold text-foreground ${lg ? "text-2xl" : "text-lg"}`}>
           Khazna
         </span>
-        <span className="mt-0.5 hidden text-[10px] uppercase tracking-[0.18em] text-subtle sm:block">{college}</span>
+        <span className="mt-0.5 hidden text-[10px] uppercase tracking-[0.18em] text-subtle sm:block">{tagline ?? college}</span>
       </span>
     </Link>
   );

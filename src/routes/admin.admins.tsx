@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Btn } from "@/components/khazna/btn";
 import { KDrawer } from "@/components/khazna/overlays";
 import { Avatar, Chip, Field, PageHeader } from "@/components/khazna/primitives";
-import { SECTOR_ICON, tileVar } from "@/components/khazna/sector-meta";
+import { sectorIcon, tileVar } from "@/components/khazna/sector-meta";
 import { timeAgo } from "@/lib/khazna/format";
 import { downloadCSV, parseCSV } from "@/lib/khazna/download";
 import { useKhazna } from "@/lib/khazna/store";
@@ -90,7 +90,7 @@ function AdminsPage() {
               {m.sectors.map((slug) => {
                 const s = sectors.find((x) => x.slug === slug);
                 if (!s) return null;
-                const Icon = SECTOR_ICON[slug];
+                const Icon = sectorIcon(slug);
                 return (
                   <span key={slug} className="inline-flex items-center gap-1.5 rounded-full border border-tile bg-tile-soft px-2.5 py-1 text-xs text-foreground" style={tileVar(s.color)}>
                     <Icon className="size-3 text-tile" /> {s.name}
@@ -127,7 +127,7 @@ function SectorPicker({ value, onChange }: { value: SectorSlug[]; onChange: (v: 
     <div className="space-y-2">
       {sectors.map((s) => {
         const on = value.includes(s.slug);
-        const Icon = SECTOR_ICON[s.slug];
+        const Icon = sectorIcon(s.slug);
         return (
           <button
             key={s.slug}

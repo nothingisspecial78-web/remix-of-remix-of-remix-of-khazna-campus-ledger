@@ -35,7 +35,7 @@ import type { Role, SectorSlug } from "@/lib/khazna/types";
 import { cn } from "@/lib/utils";
 import { Avatar } from "./primitives";
 import { KMenu, KMenuItem } from "./overlays";
-import { SECTOR_ICON, tileVar } from "./sector-meta";
+import { sectorIcon, tileVar } from "./sector-meta";
 import { Logo } from "./Logo";
 
 const ROLE_META: Record<Role, { label: string; icon: LucideIcon }> = {
@@ -102,7 +102,7 @@ function useNav(role: Role, sectorSlug: SectorSlug): { title: string; items: Nav
       title: "My Ledgers",
       items: sectors.map((s) => ({
         label: s.name,
-        icon: SECTOR_ICON[s.slug],
+        icon: sectorIcon(s.slug),
         tile: s.color,
         render: (p: LinkRenderProps) => <Link to="/app/s/$sectorSlug" params={{ sectorSlug: s.slug }} {...p} />,
       })),
@@ -161,7 +161,7 @@ function ContextCard({ role, sectorSlug }: { role: Role; sectorSlug: SectorSlug 
   const collegeName = useKhazna((s) => s.college.name);
   const me = useKhazna((s) => s.students.find((x) => x.id === s.meStudentId)) ?? NO_STUDENT;
   if (role === "manager") {
-    const Icon = SECTOR_ICON[sector.slug];
+    const Icon = sectorIcon(sector.slug);
     return (
       <div className="tile-glossy mb-5 p-3.5" style={tileVar(sector.color)}>
         <div className="relative flex items-center gap-3">
@@ -304,7 +304,7 @@ export function AppShell({ role, sectorSlug, children }: { role: Role; sectorSlu
                 }
               >
                 {sectors.map((s) => {
-                  const Icon = SECTOR_ICON[s.slug];
+                  const Icon = sectorIcon(s.slug);
                   return (
                     <KMenuItem key={s.slug} onSelect={() => switchSector(s.slug)} active={s.slug === slug}>
                       <span className="tile-icon size-6" style={tileVar(s.color)}>

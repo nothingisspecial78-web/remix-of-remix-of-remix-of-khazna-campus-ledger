@@ -1,12 +1,13 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, CheckCircle2, FileSpreadsheet, FileUp, GitCompareArrows, ShieldCheck, Sparkles, UploadCloud, XCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, Download, FileSpreadsheet, FileUp, GitCompareArrows, ShieldCheck, Sparkles, UploadCloud, XCircle } from "lucide-react";
 import { useMemo, useRef, useState, type DragEvent } from "react";
 import { toast } from "sonner";
 import { Btn } from "@/components/khazna/btn";
 import { Stepper } from "@/components/khazna/Stepper";
 import { Chip, FilterChip, GlassCard, PageHeader, ProgressRing, TableShell } from "@/components/khazna/primitives";
 import { TODAY } from "@/lib/khazna/format";
+import { downloadCSV } from "@/lib/khazna/download";
 import { useKhazna } from "@/lib/khazna/store";
 import type { Student } from "@/lib/khazna/types";
 import { cn } from "@/lib/utils";
@@ -37,7 +38,7 @@ const FIELDS = [
   { key: "name", label: "Full name", required: true },
   { key: "id", label: "Ad.No", required: true },
   { key: "className", label: "Class", required: true },
-  { key: "phone", label: "Phone", required: true },
+  { key: "phone", label: "Phone", required: false },
   { key: "guardian", label: "Guardian", required: false },
 ] as const;
 type FieldKey = (typeof FIELDS)[number]["key"];
@@ -55,6 +56,13 @@ Muhammed Sahal,S0209,Thanawiyya 1,9847123409,Sainudheen
 ,S0210,Thanawiyya 1,9847123410,Unknown
 Rifa Jabin,S0211,Thanawiyya 1,9847123411,Hamza M.
 Ziyan Ahmed,S0212,Thanawiyya 1,9847123412,Ahmed Kabeer`;
+
+const downloadTemplate = () =>
+  downloadCSV("students-template.csv", [
+    ["Admission Number", "Name", "Class", "Phone Number"],
+    ["S0201", "Muhammed Rayan", "Fiqh 1", "9847123401"],
+    ["S0202", "Aysha Mehrin", "Fiqh 1", ""],
+  ]);
 
 function parseCSV(text: string) {
   const lines = text.trim().split(/\r?\n/).filter(Boolean);
@@ -127,11 +135,11 @@ function ImportPage() {
       const st: Student = { id: get("id").toUpperCase(), name: get("name"), className: get("className"), phone: get("phone"), guardian: get("guardian") || "—", joined: TODAY };
       const errors: string[] = [];
       if (st.name.length < 2) errors.push("Name missing");
-      if (!/^S\d{4}$/.test(st.id)) errors.push("Bad Ad.No");
+      if (!/^[A-Z0-9/-]{2,15}$/.test(st.id)) errors.push("Bad Ad.No");
       else if (students.some((s) => s.id === st.id)) errors.push("Ad.No exists");
       else if (seen.has(st.id)) errors.push("Duplicate in file");
-      if (!classes.includes(st.className)) errors.push("Unknown class");
-      if (!/^\d{10}$/.test(st.phone)) errors.push("Phone must be 10 digits");
+      if (!st.className) errors.push("Class missing");
+      if (st.phone && !/^\d{10}$/.test(st.phone)) errors.push("Phone must be 10 digits");
       seen.add(st.id);
       return { idx: idx + 1, student: st, errors };
     });
@@ -190,7 +198,7 @@ function ImportPage() {
                   <UploadCloud className="size-7" />
                 </motion.div>
                 <div className="mt-4 font-display text-lg font-semibold">Drop your CSV here</div>
-                <div className="mt-1 text-sm text-muted-foreground">or click to browse · columns for name, Ad.No, class, phone</div>
+                <div className="mt-1 text-sm text-muted-foreground">or click to browse · admission number, name, class, phone (optional)</div>
                 <input ref={inputRef} type="file" accept=".csv" className="hidden" onChange={(e) => onFile(e.target.files?.[0])} />
               </div>
               <div className="mt-5 flex flex-col items-center justify-between gap-3 sm:flex-row">
@@ -201,9 +209,14 @@ function ImportPage() {
                     <Chip tone="credit">{data?.rows.length} rows</Chip>
                   </div>
                 ) : (
-                  <button className="text-sm text-primary hover:underline" onClick={() => load("thanawiyya-1-intake.csv", SAMPLE)}>
-                    No file handy? Use the sample intake file →
-                  </button>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Btn variant="soft" size="sm" onClick={downloadTemplate}>
+                      <Download /> Download template
+                    </Btn>
+                    <button className="text-sm text-primary hover:underline" onClick={() => load("thanawiyya-1-intake.csv", SAMPLE)}>
+                      or try the sample file →
+                    </button>
+                  </div>
                 )}
                 <Btn variant="primary" disabled={!data} onClick={() => setStep(1)}>
                   Continue <ArrowRight />
@@ -308,7 +321,7 @@ function ImportPage() {
                         <td className={v.student.name ? "text-foreground" : "italic text-subtle"}>{v.student.name || "missing"}</td>
                         <td className="num text-muted-foreground">{v.student.id}</td>
                         <td className="text-muted-foreground">{v.student.className}</td>
-                        <td className="num text-muted-foreground">{v.student.phone}</td>
+                        <td className="num text-muted-foreground">{v.student.phone || "—"}</td>
                         <td>
                           <div className="flex flex-wrap gap-1">
                             {v.errors.map((e) => (

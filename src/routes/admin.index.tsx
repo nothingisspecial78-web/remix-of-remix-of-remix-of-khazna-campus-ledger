@@ -1,6 +1,6 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { AlertTriangle, ArrowDownLeft, ArrowUpRight, ScrollText, Upload, Users, Wallet } from "lucide-react";
+import { AlertTriangle, ArrowDownLeft, ArrowUpRight, Check, ScrollText, Upload, Users, Wallet } from "lucide-react";
 import { AUDIT_ICON } from "@/components/khazna/audit-meta";
 import { useMemo } from "react";
 import { Btn } from "@/components/khazna/btn";
@@ -17,7 +17,7 @@ export const Route = createFileRoute("/admin/")({
   head: () => ({
     meta: [
       { title: "Admin Dashboard — Khazna" },
-      { name: "description", content: "College-wide balances, collections and sector activity for Islahul Uloom." },
+      { name: "description", content: "College-wide balances, collections and sector activity for your college." },
       { property: "og:title", content: "Admin Dashboard — Khazna" },
       { property: "og:description", content: "College-wide balances, collections and sector activity." },
       { property: "og:type", content: "website" },
@@ -33,6 +33,17 @@ function AdminDashboard() {
   const sectors = useKhazna((s) => s.sectors);
   const students = useKhazna((s) => s.students);
   const audit = useKhazna((s) => s.audit);
+  const college = useKhazna((s) => s.college);
+  const classes = useKhazna((s) => s.classes);
+  const managers = useKhazna((s) => s.managers);
+  const sectorList = useKhazna((s) => s.sectors);
+  const pendingInvite = managers.find((m) => m.status === "invited");
+  const setup = [
+    { done: sectorList.length > 0, title: "Add your sectors", body: "Office, unions, welfare wings, departments…", to: "/admin/sectors" as const, cta: "Add sectors" },
+    { done: managers.length > 0, title: "Add sector managers", body: "One by one, or bulk upload with a template.", to: "/admin/admins" as const, cta: "Add managers" },
+    { done: students.length > 0, title: "Upload students", body: "Admission number, name, class and phone (optional).", to: "/admin/students/import" as const, cta: "Upload students" },
+  ];
+  const setupLeft = setup.filter((x) => !x.done).length;
 
   const stats = useMemo(() => {
     const all = totals(txs);
@@ -44,7 +55,7 @@ function AdminDashboard() {
     return { all, m, dues, target, perSector, monthCount: month.length };
   }, [txs, sectors]);
 
-  const progress = stats.all.credit / stats.target;
+  const progress = stats.target > 0 ? stats.all.credit / stats.target : 0;
 
   return (
     <div>
@@ -52,10 +63,10 @@ function AdminDashboard() {
         eyebrow="Super Admin · Dashboard"
         title={
           <>
-            Welcome back, <span className="text-gradient-primary">Abdulla</span>
+            Welcome back, <span className="text-gradient-primary">{college.adminName.split(" ")[0]}</span>
           </>
         }
-        description="Here's how money is moving across every sector of Islahul Uloom this term."
+        description={`Here's how money is moving across every sector of ${college.name} this term.`}
         actions={
           <>
             <Btn asChild variant="glass">
@@ -82,7 +93,7 @@ function AdminDashboard() {
           value={<CountUp value={stats.m.credit} />}
           hint={<span className="num">{stats.monthCount} entries posted</span>}
         />
-        <StatCard label="Students" icon={Users} tone="info" delay={0.1} value={<CountUp value={students.length} format={(n) => Math.round(n).toString()} />} hint="Active across 8 classes" />
+        <StatCard label="Students" icon={Users} tone="info" delay={0.1} value={<CountUp value={students.length} format={(n) => Math.round(n).toString()} />} hint={`Active across ${classes.length} class${classes.length === 1 ? "" : "es"}`} />
         <StatCard
           label="Pending dues"
           icon={AlertTriangle}
@@ -92,6 +103,44 @@ function AdminDashboard() {
           hint={<span className="num">{stats.dues.count} student ledgers in the red</span>}
         />
       </div>
+
+      {setupLeft > 0 && (
+        <GlassCard className="mt-8 p-6">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">Set up {college.name}</h2>
+              <p className="text-sm text-muted-foreground">
+                {setupLeft} step{setupLeft === 1 ? "" : "s"} left before managers can post entries and students can sign in.
+              </p>
+            </div>
+            <Chip tone="primary">
+              {3 - setupLeft}/3 done
+            </Chip>
+          </div>
+          <div className="mt-5 grid gap-3 md:grid-cols-3">
+            {setup.map((x, i) => (
+              <motion.div key={x.title} {...reveal(i)} className={`glass-inset flex flex-col gap-3 p-4 ${x.done ? "opacity-70" : ""}`}>
+                <div className="flex items-center gap-3">
+                  <span className={`grid size-8 shrink-0 place-items-center rounded-full text-sm font-semibold ${x.done ? "bg-credit/15 text-credit" : "bg-primary/12 text-primary"}`}>
+                    {x.done ? <Check className="size-4" /> : i + 1}
+                  </span>
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium text-foreground">{x.title}</div>
+                    <div className="text-xs text-muted-foreground">{x.body}</div>
+                  </div>
+                </div>
+                {!x.done && (
+                  <Btn asChild variant="soft" size="sm" className="self-start">
+                    <Link to={x.to}>
+                      {x.cta} <ArrowUpRight />
+                    </Link>
+                  </Btn>
+                )}
+              </motion.div>
+            ))}
+          </div>
+        </GlassCard>
+      )}
 
       <div className="mt-8 mb-3 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-foreground">Sectors</h2>
@@ -139,7 +188,7 @@ function AdminDashboard() {
           </div>
           <div className="mt-5 space-y-2.5">
             {stats.perSector.map(({ sector, t }) => {
-              const p = Math.min(1, t.credit / sector.target);
+              const p = sector.target > 0 ? Math.min(1, t.credit / sector.target) : 0;
               return (
                 <div key={sector.slug} style={tileVar(sector.color)}>
                   <div className="mb-1 flex justify-between text-xs">
@@ -185,12 +234,15 @@ function AdminDashboard() {
         </GlassCard>
       </div>
 
+      {pendingInvite && (
       <GlassCard className="mt-4 flex flex-col items-start justify-between gap-4 p-5 sm:flex-row sm:items-center" transition={{ delay: 0.2 }}>
         <div className="flex items-center gap-3">
-          <Avatar name="Mujeeb Baqavi" />
+          <Avatar name={pendingInvite.name} />
           <div>
-            <div className="text-sm font-medium text-foreground">Mujeeb Baqavi hasn't accepted his invite yet</div>
-            <div className="text-xs text-muted-foreground">Invited to manage Office and Velitcham Welfare · {formatINR(0)} handled so far</div>
+            <div className="text-sm font-medium text-foreground">{pendingInvite.name} hasn't accepted the invite yet</div>
+            <div className="text-xs text-muted-foreground">
+              Invited to manage {sectorList.filter((x) => pendingInvite.sectors.includes(x.slug)).map((x) => x.name).join(" and ") || "no sectors yet"} · {formatINR(0)} handled so far
+            </div>
           </div>
         </div>
         <Btn asChild variant="soft" size="sm">
@@ -199,6 +251,7 @@ function AdminDashboard() {
           </Link>
         </Btn>
       </GlassCard>
+      )}
     </div>
   );
 }

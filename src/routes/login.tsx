@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Btn } from "@/components/khazna/btn";
 import { Logo } from "@/components/khazna/Logo";
 import { Field } from "@/components/khazna/primitives";
-import { SECTOR_ICON, tileVar } from "@/components/khazna/sector-meta";
+import { sectorIcon, tileVar } from "@/components/khazna/sector-meta";
 import { DEFAULT_MANAGER_SECTOR, SECTORS } from "@/lib/khazna/data";
 import { markSignInTransition } from "@/lib/khazna/sign-in-transition";
 import { useKhazna } from "@/lib/khazna/store";
@@ -121,7 +121,7 @@ function LoginPage() {
         transition={{ duration: 0.6, ease: [0.65, 0, 0.35, 1] }}
         className="relative hidden flex-col justify-between overflow-hidden p-12 lg:flex"
       >
-        <Logo size="lg" />
+        <Logo size="lg" tagline="College finance portal" />
         <div className="relative max-w-lg">
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
             <div className="font-display text-5xl font-semibold text-primary/90">Khazna</div>
@@ -136,7 +136,7 @@ function LoginPage() {
           </motion.div>
           <div className="mt-10 grid grid-cols-5 gap-3">
             {SECTORS.map((s, i) => {
-              const Icon = SECTOR_ICON[s.slug];
+              const Icon = sectorIcon(s.slug);
               return (
                 <motion.div
                   key={s.slug}
