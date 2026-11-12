@@ -98,14 +98,11 @@ export const ME_STUDENT_ID = "S0125";
 export const STUDENTS: Student[] = NAMES.map((name, i) => {
   const id = `S${String(103 + i).padStart(4, "0")}`;
   const isMe = id === ME_STUDENT_ID;
-  return {
-    id,
-    name,
-    className: isMe ? "Fiqh 2" : i % 4 === 1 ? "Fiqh 2" : CLASSES[(i * 3) % CLASSES.length]!,
-    phone: isMe ? "9847012125" : `9${between(100000000, 999999999)}`,
-    guardian: pick(GUARDIANS),
-    joined: addDays("2024-06-03", between(0, 420)),
-  };
+  const className = isMe ? "Fiqh 2" : i % 4 === 1 ? "Fiqh 2" : CLASSES[(i * 3) % CLASSES.length]!;
+  const phone = isMe ? "9847012125" : `9${between(100000000, 999999999)}`;
+  const guardian = pick(GUARDIANS); // always draw so the seeded sequence stays stable
+  const joined = addDays("2024-06-03", between(0, 420));
+  return { id, name, className, phone, guardian: isMe ? "Moideen Kutty" : guardian, joined };
 });
 
 const SECTOR_CREATOR: Record<SectorSlug, string> = {

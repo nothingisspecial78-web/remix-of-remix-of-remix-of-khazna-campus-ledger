@@ -1,10 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Check, KeyRound, Pencil, Phone, ShieldCheck, X } from "lucide-react";
-import { useState } from "react";
+import { Link, createFileRoute } from "@tanstack/react-router";
+import { ArrowRight, Check, KeyRound, Pencil, Phone, ShieldCheck, Wallet, X } from "lucide-react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Btn } from "@/components/khazna/btn";
+import { SectorTile } from "@/components/khazna/SectorTile";
 import { Avatar, Chip, Field, GlassCard, PageHeader } from "@/components/khazna/primitives";
-import { formatDate } from "@/lib/khazna/format";
+import { formatDate, formatINR } from "@/lib/khazna/format";
+import { totals } from "@/lib/khazna/ledger";
 import { useKhazna } from "@/lib/khazna/store";
 import { cn } from "@/lib/utils";
 
@@ -34,6 +36,10 @@ function strength(p: string) {
 function ProfilePage() {
   const me = useKhazna((s) => s.students.find((x) => x.id === s.meStudentId)!);
   const updatePhone = useKhazna((s) => s.updatePhone);
+  const txs = useKhazna((s) => s.transactions);
+  const sectors = useKhazna((s) => s.sectors);
+  const perSector = useMemo(() => sectors.map((sec) => ({ sector: sec, t: totals(txs, { studentId: me.id, sector: sec.slug }) })), [txs, sectors, me.id]);
+  const combined = useMemo(() => totals(txs, { studentId: me.id }), [txs, me.id]);
   const [editing, setEditing] = useState(false);
   const [phone, setPhone] = useState(me.phone);
   const [pw, setPw] = useState({ current: "", next: "", confirm: "" });
@@ -120,6 +126,29 @@ function ProfilePage() {
             </div>
           </GlassCard>
         </div>
+      </div>
+
+      <div className="mt-8 mb-3 flex flex-wrap items-end justify-between gap-2">
+        <div>
+          <h2 className="flex items-center gap-2 text-lg font-semibold"><Wallet className="size-4 text-primary" /> Sector balances</h2>
+          <p className="text-sm text-muted-foreground">Open any sector to see its full ledger.</p>
+        </div>
+        <div className="glass-inset px-3 py-2 text-sm">
+          <span className="text-muted-foreground">Combined </span>
+          <span className={cn("font-semibold num", combined.balance < 0 ? "text-debit" : "text-foreground")}>{formatINR(combined.balance)}</span>
+        </div>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
+        {perSector.map((p, i) => (
+          <Link key={p.sector.slug} to="/app/s/$sectorSlug" params={{ sectorSlug: p.sector.slug }} className="block" aria-label={`Open ${p.sector.name} ledger`}>
+            <SectorTile sector={p.sector} value={p.t.balance} delay={0.15 + 0.05 * i}>
+              <div className="flex items-center justify-between">
+                <span className="num">{p.t.count} entries</span>
+                <span className="inline-flex items-center gap-1 text-tile">View ledger <ArrowRight className="size-3" /></span>
+              </div>
+            </SectorTile>
+          </Link>
+        ))}
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
+import campusBackdrop from "@/assets/campus-backdrop.jpg.asset.json";
 import { Toaster } from "@/components/ui/sonner";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
@@ -130,6 +131,10 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <div className="app-backdrop" aria-hidden="true">
+        <div className="app-backdrop-photo" style={{ backgroundImage: `url(${campusBackdrop.url})` }} />
+        <div className="app-backdrop-veil" />
+      </div>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
       <Toaster position="bottom-right" theme="dark" />

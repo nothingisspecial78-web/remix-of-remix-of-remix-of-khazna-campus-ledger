@@ -4,3 +4,4 @@
 - [x] Student profile + notifications pages
 - [x] Verify build & key flows
 - [x] Answer user: suggest good next steps after remix
+- [x] Final design pass: campus photo backdrop, profile sector balances, notifications filters + details, avatar/bell links

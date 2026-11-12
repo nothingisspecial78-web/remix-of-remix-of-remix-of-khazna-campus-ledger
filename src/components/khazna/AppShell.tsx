@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import {
   Bell,
-  BookUser,
   Check,
   ChevronDown,
   FileSpreadsheet,
@@ -300,26 +299,45 @@ export function AppShell({ role, sectorSlug, children }: { role: Role; sectorSlu
               </Link>
             )}
 
-            <KMenu
-              trigger={
-                <button className="flex items-center gap-2 rounded-xl p-1 pr-2 hover:bg-accent">
+            {role === "student" ? (
+              <>
+                <Link
+                  to="/app/profile"
+                  aria-label="My profile"
+                  className="flex items-center gap-2 rounded-xl p-1 pr-2 hover:bg-accent data-[status=active]:bg-accent"
+                >
                   <Avatar name={user.name} size={32} />
                   <span className="hidden text-left leading-tight md:block">
                     <span className="block text-sm font-medium text-foreground">{user.name}</span>
                     <span className="block text-[11px] text-muted-foreground">{user.sub}</span>
                   </span>
-                </button>
-              }
-            >
-              {role === "student" && (
-                <KMenuItem onSelect={() => navigate({ to: "/app/profile" })}>
-                  <BookUser className="size-4" /> My profile
+                </Link>
+                <Link
+                  to="/login"
+                  aria-label="Sign out"
+                  title="Sign out"
+                  className="grid size-10 place-items-center rounded-xl text-muted-foreground hover:bg-accent hover:text-debit"
+                >
+                  <LogOut className="size-[18px]" />
+                </Link>
+              </>
+            ) : (
+              <KMenu
+                trigger={
+                  <button className="flex items-center gap-2 rounded-xl p-1 pr-2 hover:bg-accent">
+                    <Avatar name={user.name} size={32} />
+                    <span className="hidden text-left leading-tight md:block">
+                      <span className="block text-sm font-medium text-foreground">{user.name}</span>
+                      <span className="block text-[11px] text-muted-foreground">{user.sub}</span>
+                    </span>
+                  </button>
+                }
+              >
+                <KMenuItem destructive onSelect={() => navigate({ to: "/login" })}>
+                  <LogOut className="size-4" /> Sign out
                 </KMenuItem>
-              )}
-              <KMenuItem destructive onSelect={() => navigate({ to: "/login" })}>
-                <LogOut className="size-4" /> Sign out
-              </KMenuItem>
-            </KMenu>
+              </KMenu>
+            )}
           </div>
         </div>
       </header>
