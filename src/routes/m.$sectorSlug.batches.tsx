@@ -62,7 +62,7 @@ function BatchesPage() {
             const total = b.amount * b.studentIds.length;
             const expanded = open === b.id;
             return (
-              <motion.div key={b.id} {...reveal(i, 0, b.voided ? 0.7 : 1)} className="glass overflow-hidden">
+              <motion.div key={b.id} {...reveal(i, 0, b.voided ? 0.7 : 1)} className="glass hover-lift overflow-hidden">
                 <div className="flex flex-col gap-4 p-4 md:flex-row md:items-center md:p-5">
                   <button className="flex flex-1 items-center gap-4 text-left" onClick={() => setOpen(expanded ? null : b.id)}>
                     <span className={cn("grid size-11 shrink-0 place-items-center rounded-xl border", b.voided ? "border-hairline bg-accent text-subtle" : b.type === "credit" ? "border-credit/30 bg-credit/12 text-credit" : "border-debit/30 bg-debit/12 text-debit")}>

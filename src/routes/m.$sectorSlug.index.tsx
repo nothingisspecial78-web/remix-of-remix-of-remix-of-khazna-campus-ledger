@@ -143,7 +143,7 @@ function SectorOverview() {
                 <XAxis dataKey="date" tickFormatter={(v: string) => formatShortDate(v)} tick={{ fill: "var(--subtle)", fontSize: 11 }} axisLine={false} tickLine={false} interval={4} />
                 <YAxis tickFormatter={(v: number) => formatCompactINR(v).replace("₹", "")} tick={{ fill: "var(--subtle)", fontSize: 11 }} axisLine={false} tickLine={false} width={56} />
                 <Tooltip
-                  cursor={{ stroke: "var(--glass-border)" }}
+                  cursor={{ stroke: "var(--input)", strokeDasharray: "4 4" }}
                   content={({ active, payload, label }) =>
                     active && payload?.length ? (
                       <div className="glass-strong rounded-xl px-3 py-2 text-xs">
@@ -154,8 +154,8 @@ function SectorOverview() {
                     ) : null
                   }
                 />
-                <Area type="monotone" dataKey="credit" stroke="var(--credit)" strokeWidth={2} fill="url(#gCredit)" />
-                <Area type="monotone" dataKey="debit" stroke="var(--debit)" strokeWidth={2} fill="url(#gDebit)" />
+                <Area type="monotone" dataKey="credit" stroke="var(--credit)" strokeWidth={2.5} fill="url(#gCredit)" animationDuration={1600} animationEasing="ease-out" activeDot={{ r: 5, strokeWidth: 2, stroke: "var(--background)" }} />
+                <Area type="monotone" dataKey="debit" stroke="var(--debit)" strokeWidth={2.5} fill="url(#gDebit)" animationDuration={1600} animationBegin={250} animationEasing="ease-out" activeDot={{ r: 5, strokeWidth: 2, stroke: "var(--background)" }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -172,7 +172,7 @@ function SectorOverview() {
                   <span className="shrink-0 text-debit num">{formatINR(v.amount)}</span>
                 </div>
                 <div className="h-2 overflow-hidden rounded-full bg-accent" style={tileVar(sector.color)}>
-                  <motion.div className="h-full rounded-full bg-tile" initial={{ width: 0 }} animate={{ width: `${(v.amount / maxDebit) * 100}%` }} transition={{ delay: 0.2 + i * 0.08, duration: 0.8 }} />
+                  <motion.div className="h-full rounded-full bg-tile" initial={{ width: 0 }} viewport={{ once: true, margin: "-30px" }} whileInView={{ width: `${(v.amount / maxDebit) * 100}%` }} transition={{ delay: 0.2 + i * 0.08, duration: 0.8 }} />
                 </div>
                 <div className="mt-1 text-[11px] text-subtle num">{v.count} entries</div>
               </div>

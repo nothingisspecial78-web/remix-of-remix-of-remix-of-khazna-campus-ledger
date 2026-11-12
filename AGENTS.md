@@ -36,3 +36,4 @@ use the editor.
 - The campus photo backdrop is rendered once in src/routes/__root.tsx with the `app-backdrop` utility; body stays transparent so it shows through — don't give pages or body their own full-page backgrounds.
 - Scroll-in animation comes from `reveal()` in src/components/khazna/motion.ts (GlassCard, TableShell, SectorTile already use it) — spread it on new cards/rows instead of hand-writing initial/animate so motion stays consistent; pass a resting opacity instead of opacity-* classes, which motion's inline style would override.
 - The login → dashboard hand-off uses a one-shot client flag in src/lib/khazna/sign-in-transition.ts that AppShell reads on mount — keeps the reveal off for normal navigation and SSR.
+- Hover lift on cards uses the `hover-lift` utility, which animates the CSS `translate` property rather than `transform` — framer-motion writes inline transforms that would otherwise cancel it.

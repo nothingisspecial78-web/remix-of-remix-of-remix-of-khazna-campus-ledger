@@ -86,7 +86,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "Khazna — Islahul Uloom Finance Portal" },
       { name: "description", content: "Khazna is the cash ledger and finance portal of Islahul Uloom college." },
       { name: "author", content: "Islahul Uloom" },
-      { name: "theme-color", content: "#0b0b0d" },
+      { name: "theme-color", content: "#F7F5F2" },
       { property: "og:title", content: "Khazna — Islahul Uloom Finance Portal" },
       { property: "og:description", content: "Cash ledger and finance portal of Islahul Uloom college." },
       { property: "og:type", content: "website" },
@@ -114,7 +114,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <head>
         <HeadContent />
       </head>
@@ -134,10 +134,16 @@ function RootComponent() {
       <div className="app-backdrop" aria-hidden="true">
         <div className="app-backdrop-photo" style={{ backgroundImage: `url(${campusBackdrop.url})` }} />
         <div className="app-backdrop-veil" />
+        <div className="app-backdrop-orbs">
+          <span />
+          <span />
+          <span />
+        </div>
+        <div className="app-backdrop-sheen" />
       </div>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
-      <Toaster position="bottom-right" theme="dark" />
+      <Toaster position="bottom-right" theme="light" richColors closeButton />
     </QueryClientProvider>
   );
 }

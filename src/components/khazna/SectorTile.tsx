@@ -17,9 +17,10 @@ export function SectorTile({ sector, value, label = "Balance", children, delay =
       className={cn("tile-glossy group h-full p-4", className)}
       style={tileVar(sector.color)}
     >
+      <Icon aria-hidden className="pointer-events-none absolute -bottom-7 -right-7 size-24 text-tile opacity-[0.06] transition-all duration-500 group-hover:-rotate-12 group-hover:scale-110 group-hover:opacity-[0.12]" />
       <div className="relative flex h-full flex-col">
         <div className="flex items-start justify-between">
-          <span className="tile-icon size-10">
+          <span className="tile-icon size-10 transition-transform duration-300 group-hover:scale-110">
             <Icon className="size-[18px]" />
           </span>
           <ArrowUpRight className="size-4 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-tile" />

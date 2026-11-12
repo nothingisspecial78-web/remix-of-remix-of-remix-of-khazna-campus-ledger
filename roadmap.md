@@ -8,3 +8,5 @@
 - [x] Brighter clean campus backdrop
 - [x] Login transition animation
 - [x] Scroll-reveal animations across pages
+- [x] Light-mode redesign (clean light glass), less generic look
+- [x] Hover lift/glow, animated charts/numbers, moving background shimmer, page slide transitions

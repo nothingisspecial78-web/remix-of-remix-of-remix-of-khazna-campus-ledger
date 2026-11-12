@@ -69,7 +69,7 @@ function StudentHome() {
         </p>
       </div>
 
-      <motion.div initial={{ opacity: 0, y: 14, scale: 0.99 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.5 }} className="glass relative overflow-hidden p-6 md:p-8">
+      <motion.div initial={{ opacity: 0, y: 14, scale: 0.99 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.5 }} className="glass ring-gradient relative overflow-hidden p-6 md:p-8">
         <div className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full bg-primary/25 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-32 left-1/3 size-72 rounded-full bg-info/10 blur-3xl" />
         <div className="relative flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
@@ -100,7 +100,8 @@ function StudentHome() {
                 style={tileVar(p.sector.color)}
                 className="h-full bg-tile first:rounded-l-full last:rounded-r-full"
                 initial={{ width: 0 }}
-                animate={{ width: `${(Math.max(0, p.t.balance) / positiveTotal) * 100}%` }}
+                viewport={{ once: true, margin: "-30px" }}
+                whileInView={{ width: `${(Math.max(0, p.t.balance) / positiveTotal) * 100}%` }}
                 transition={{ delay: 0.4 + i * 0.08, duration: 0.8 }}
               />
             ))}

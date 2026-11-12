@@ -59,7 +59,7 @@ function AdminsPage() {
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {managers.map((m, i) => (
-          <motion.div key={m.id} {...reveal(i)} className="glass flex flex-col p-5">
+          <motion.div key={m.id} {...reveal(i)} className="glass hover-lift flex flex-col p-5">
             <div className="flex items-start gap-3">
               <div className="relative">
                 <Avatar name={m.name} size={46} />

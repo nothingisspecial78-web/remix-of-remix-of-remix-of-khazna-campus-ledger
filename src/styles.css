@@ -9,7 +9,7 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Khazna design system — dark charcoal glassmorphism.
+ * Khazna design system — clean light glass over a softly blurred campus photo.
  * All colors are oklch tokens. Components consume semantic utilities only.
  */
 
@@ -80,53 +80,53 @@
 }
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
   --radius: 0.75rem;
 
-  /* #0b0b0d base, #141416 secondary */
-  --background: oklch(0.141 0.004 286);
-  --background-2: oklch(0.184 0.004 286);
-  --foreground: oklch(0.96 0.003 286);
+  /* Clean light mode: #F7F5F2 paper, #FFFFFF glass, #0F172A ink, #E2E8F0 lines */
+  --background: oklch(0.973 0.004 75);
+  --background-2: oklch(0.948 0.006 75);
+  --foreground: oklch(0.208 0.042 265.8);
 
-  --card: oklch(1 0 0 / 0.06);
+  --card: oklch(1 0 0 / 0.72);
   --card-foreground: var(--foreground);
-  --popover: oklch(0.2 0.005 286 / 0.92);
+  --popover: oklch(1 0 0 / 0.94);
   --popover-foreground: var(--foreground);
 
-  /* Warm orange #F97316 */
-  --primary: oklch(0.705 0.187 47.6);
-  --primary-foreground: oklch(0.16 0.02 47);
-  --primary-glow: oklch(0.78 0.16 60);
+  /* Warm orange #F97316, nudged deeper so it stays legible as text on white */
+  --primary: oklch(0.68 0.19 45);
+  --primary-foreground: oklch(1 0 0);
+  --primary-glow: oklch(0.78 0.16 62);
 
-  --secondary: oklch(1 0 0 / 0.08);
+  --secondary: oklch(0.208 0.042 265.8 / 0.05);
   --secondary-foreground: var(--foreground);
-  --muted: oklch(1 0 0 / 0.05);
-  --muted-foreground: oklch(0.68 0.008 286);
-  --subtle: oklch(0.5 0.008 286);
-  --accent: oklch(1 0 0 / 0.08);
+  --muted: oklch(0.208 0.042 265.8 / 0.04);
+  --muted-foreground: oklch(0.52 0.04 257);
+  --subtle: oklch(0.66 0.035 257);
+  --accent: oklch(0.208 0.042 265.8 / 0.05);
   --accent-foreground: var(--foreground);
 
-  /* Emerald #34D399, Rose #FB7185, Blue #60A5FA */
-  --credit: oklch(0.773 0.153 163.2);
-  --debit: oklch(0.72 0.17 12.5);
-  --info: oklch(0.714 0.143 254.6);
+  /* Emerald, rose, blue — 600 shades for contrast on light glass */
+  --credit: oklch(0.6 0.145 163.2);
+  --debit: oklch(0.6 0.215 17.6);
+  --info: oklch(0.56 0.2 262.9);
   --destructive: var(--debit);
-  --destructive-foreground: oklch(0.16 0.03 12);
+  --destructive-foreground: oklch(1 0 0);
 
-  --glass: oklch(1 0 0 / 0.06);
-  --glass-strong: oklch(0.19 0.005 286 / 0.78);
-  --glass-border: oklch(1 0 0 / 0.12);
-  --hairline: oklch(1 0 0 / 0.07);
-  --border: oklch(1 0 0 / 0.1);
-  --input: oklch(1 0 0 / 0.12);
-  --ring: oklch(0.705 0.187 47.6 / 0.6);
+  --glass: oklch(1 0 0 / 0.68);
+  --glass-strong: oklch(1 0 0 / 0.84);
+  --glass-border: oklch(1 0 0 / 0.9);
+  --hairline: oklch(0.208 0.042 265.8 / 0.07);
+  --border: oklch(0.929 0.013 255.5);
+  --input: oklch(0.208 0.042 265.8 / 0.12);
+  --ring: oklch(0.68 0.19 45 / 0.55);
 
   /* Sector tiles */
-  --sector-office: oklch(0.705 0.187 47.6);
-  --sector-ihsan: oklch(0.773 0.153 163.2);
-  --sector-velitcham: oklch(0.709 0.159 293.5);
-  --sector-fiqh: oklch(0.714 0.143 254.6);
-  --sector-civil: oklch(0.725 0.175 349.8);
+  --sector-office: oklch(0.68 0.19 45);
+  --sector-ihsan: oklch(0.64 0.15 163);
+  --sector-velitcham: oklch(0.6 0.22 292.7);
+  --sector-fiqh: oklch(0.6 0.2 259.8);
+  --sector-civil: oklch(0.64 0.22 354.3);
 
   --chart-1: var(--credit);
   --chart-2: var(--debit);
@@ -134,17 +134,26 @@
   --chart-4: var(--primary);
   --chart-5: var(--sector-velitcham);
 
-  --sidebar: oklch(0.16 0.004 286);
+  --sidebar: oklch(1 0 0 / 0.7);
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: var(--primary-foreground);
-  --sidebar-accent: oklch(1 0 0 / 0.06);
+  --sidebar-accent: var(--accent);
   --sidebar-accent-foreground: var(--foreground);
   --sidebar-border: var(--hairline);
   --sidebar-ring: var(--ring);
 
-  --shadow-glass: inset 0 1px 0 0 oklch(1 0 0 / 0.1), 0 25px 50px -12px oklch(0 0 0 / 0.65);
-  --shadow-glow: 0 10px 40px -10px color-mix(in oklab, var(--primary) 55%, transparent);
+  --shadow-glass:
+    inset 0 1px 0 0 oklch(1 0 0 / 0.95),
+    0 0 0 1px oklch(0.208 0.042 265.8 / 0.06),
+    0 1px 2px oklch(0.208 0.042 265.8 / 0.04),
+    0 18px 40px -18px oklch(0.208 0.042 265.8 / 0.22);
+  --shadow-lift:
+    inset 0 1px 0 0 oklch(1 0 0 / 0.95),
+    0 0 0 1px color-mix(in oklab, var(--primary) 22%, transparent),
+    0 4px 10px -4px oklch(0.208 0.042 265.8 / 0.08),
+    0 28px 56px -20px color-mix(in oklab, var(--primary) 38%, transparent);
+  --shadow-glow: 0 12px 36px -12px color-mix(in oklab, var(--primary) 60%, transparent);
   --gradient-primary: linear-gradient(135deg, var(--primary), var(--primary-glow));
 }
 
@@ -171,13 +180,14 @@
     background: color-mix(in oklab, var(--primary) 40%, transparent);
   }
   ::-webkit-scrollbar { width: 10px; height: 10px; }
-  ::-webkit-scrollbar-thumb { background: oklch(1 0 0 / 0.1); border-radius: 999px; border: 2px solid transparent; background-clip: padding-box; }
+  ::-webkit-scrollbar-thumb { background: oklch(0.208 0.042 265.8 / 0.14); border-radius: 999px; border: 2px solid transparent; background-clip: padding-box; }
   ::-webkit-scrollbar-track { background: transparent; }
-  input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.8); opacity: 0.6; cursor: pointer; }
+  input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0.55; cursor: pointer; }
 }
 
 /* ---------- Fixed photographic backdrop ---------- */
-/* Image URL is set inline from the asset pointer; this layer only blurs and dims it. */
+/* Image URL is set inline from the asset pointer; this layer softens it under a light veil,
+   with slow drifting colour orbs and a sheen sweep for the moving shimmer. */
 @utility app-backdrop {
   position: fixed;
   inset: 0;
@@ -187,20 +197,51 @@
   background-color: var(--background);
   & > .app-backdrop-photo {
     position: absolute;
-    inset: -80px; /* overscan so the blur never shows light edges */
+    inset: -80px; /* overscan so the blur never shows soft edges */
     background-size: cover;
     background-position: center 35%;
-    filter: blur(20px) brightness(0.68) saturate(125%);
+    filter: blur(22px) saturate(120%) brightness(1.04);
     transform: scale(1.04);
+    animation: k-ken-burns 40s ease-in-out infinite alternate;
   }
   & > .app-backdrop-veil {
     position: absolute;
     inset: 0;
     background:
-      radial-gradient(60rem 40rem at 8% -10%, color-mix(in oklab, var(--primary) 8%, transparent), transparent 60%),
-      radial-gradient(50rem 36rem at 105% 10%, color-mix(in oklab, var(--info) 8%, transparent), transparent 60%),
-      radial-gradient(ellipse 120% 90% at 50% 35%, color-mix(in oklab, var(--background) 45%, transparent) 0%, color-mix(in oklab, var(--background) 52%, transparent) 50%, color-mix(in oklab, var(--background) 65%, transparent) 100%);
+      radial-gradient(ellipse 120% 90% at 50% 30%, color-mix(in oklab, var(--background) 52%, transparent) 0%, color-mix(in oklab, var(--background) 66%, transparent) 55%, color-mix(in oklab, var(--background) 84%, transparent) 100%);
   }
+  & > .app-backdrop-orbs > span {
+    position: absolute;
+    border-radius: 999px;
+    filter: blur(70px);
+    opacity: 0.55;
+    animation: k-drift 22s ease-in-out infinite alternate;
+  }
+  & > .app-backdrop-orbs > span:nth-child(1) { width: 38rem; height: 38rem; left: -10rem; top: -12rem; background: color-mix(in oklab, var(--primary) 34%, transparent); }
+  & > .app-backdrop-orbs > span:nth-child(2) { width: 32rem; height: 32rem; right: -8rem; top: 10%; background: color-mix(in oklab, var(--info) 22%, transparent); animation-duration: 28s; animation-delay: -6s; }
+  & > .app-backdrop-orbs > span:nth-child(3) { width: 30rem; height: 30rem; left: 35%; bottom: -14rem; background: color-mix(in oklab, var(--credit) 22%, transparent); animation-duration: 32s; animation-delay: -12s; }
+  & > .app-backdrop-sheen {
+    position: absolute;
+    inset: -50%;
+    background: linear-gradient(115deg, transparent 40%, oklch(1 0 0 / 0.35) 50%, transparent 60%);
+    animation: k-sheen 14s ease-in-out infinite;
+  }
+}
+@keyframes k-drift {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(6rem, 3rem, 0) scale(1.12); }
+  100% { transform: translate3d(-4rem, 5rem, 0) scale(0.94); }
+}
+@keyframes k-sheen {
+  0%, 15% { transform: translateX(-60%); }
+  65%, 100% { transform: translateX(60%); }
+}
+@keyframes k-ken-burns {
+  from { transform: scale(1.04) translate3d(0, 0, 0); }
+  to { transform: scale(1.12) translate3d(-1.5%, -1%, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-backdrop *, .app-backdrop-orbs > span { animation: none !important; }
 }
 
 /* Sign-in hand-off glow: covers the screen as the login card leaves and fades out as the dashboard arrives. */
@@ -226,7 +267,7 @@
   box-shadow: var(--shadow-glass);
 }
 @utility glass-inset {
-  background-color: oklch(0 0 0 / 0.22);
+  background-color: oklch(0.208 0.042 265.8 / 0.035);
   border: 1px solid var(--hairline);
   border-radius: 0.75rem;
 }
@@ -246,26 +287,55 @@
 @utility shadow-glow {
   box-shadow: var(--shadow-glow);
 }
+/* Hover lift + warm glow. Uses `translate` (not transform) so it composes with framer-motion's inline transforms. */
+@utility hover-lift {
+  transition: translate 300ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 300ms ease, border-color 300ms ease;
+  &:hover { translate: 0 -4px; box-shadow: var(--shadow-lift); }
+}
+/* Gradient hairline ring (used on hero cards) */
+@utility ring-gradient {
+  position: relative;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, color-mix(in oklab, var(--primary) 55%, transparent), transparent 40%, transparent 60%, color-mix(in oklab, var(--info) 40%, transparent));
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+}
 
 /* Glossy colored sector tile. Set --tile to a sector color token. */
 @utility tile-glossy {
   position: relative;
   overflow: hidden;
   border-radius: 1rem;
-  border: 1px solid color-mix(in oklab, var(--tile) 35%, transparent);
+  border: 1px solid color-mix(in oklab, var(--tile) 22%, oklch(1 0 0 / 0.9));
   background:
-    radial-gradient(120% 90% at 100% 0%, color-mix(in oklab, var(--tile) 38%, transparent), transparent 60%),
-    linear-gradient(160deg, color-mix(in oklab, var(--tile) 22%, transparent), oklch(1 0 0 / 0.03) 70%);
-  backdrop-filter: blur(20px);
+    radial-gradient(120% 90% at 100% 0%, color-mix(in oklab, var(--tile) 24%, transparent), transparent 62%),
+    linear-gradient(160deg, color-mix(in oklab, var(--tile) 10%, oklch(1 0 0 / 0.78)), oklch(1 0 0 / 0.62) 75%);
+  backdrop-filter: blur(20px) saturate(140%);
   box-shadow:
-    inset 0 1px 0 0 oklch(1 0 0 / 0.18),
-    0 20px 40px -18px color-mix(in oklab, var(--tile) 55%, transparent);
+    inset 0 1px 0 0 oklch(1 0 0 / 0.95),
+    0 1px 2px oklch(0.208 0.042 265.8 / 0.04),
+    0 18px 40px -20px color-mix(in oklab, var(--tile) 50%, transparent);
+  transition: box-shadow 300ms ease, border-color 300ms ease;
   &::before {
     content: "";
     position: absolute;
     inset: 0 0 55% 0;
-    background: linear-gradient(180deg, oklch(1 0 0 / 0.12), transparent);
+    background: linear-gradient(180deg, oklch(1 0 0 / 0.55), transparent);
     pointer-events: none;
+  }
+  &:hover {
+    border-color: color-mix(in oklab, var(--tile) 45%, transparent);
+    box-shadow:
+      inset 0 1px 0 0 oklch(1 0 0 / 0.95),
+      0 0 0 1px color-mix(in oklab, var(--tile) 20%, transparent),
+      0 28px 56px -18px color-mix(in oklab, var(--tile) 60%, transparent);
   }
 }
 @utility tile-icon {
@@ -273,9 +343,9 @@
   place-items: center;
   border-radius: 0.75rem;
   color: var(--tile);
-  background: color-mix(in oklab, var(--tile) 18%, transparent);
-  border: 1px solid color-mix(in oklab, var(--tile) 35%, transparent);
-  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.15);
+  background: color-mix(in oklab, var(--tile) 13%, oklch(1 0 0 / 0.7));
+  border: 1px solid color-mix(in oklab, var(--tile) 28%, transparent);
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.9), 0 6px 14px -8px color-mix(in oklab, var(--tile) 60%, transparent);
 }
 @utility text-tile {
   color: var(--tile);
@@ -295,7 +365,7 @@
   width: 100%;
   height: 2.6rem;
   border-radius: 0.75rem;
-  background-color: oklch(0 0 0 / 0.25);
+  background-color: oklch(1 0 0 / 0.8);
   border: 1px solid var(--input);
   padding: 0 0.85rem;
   font-size: 0.875rem;
@@ -330,7 +400,8 @@
     white-space: nowrap;
   }
   & tbody tr { transition: background-color 120ms; }
-  & tbody tr:hover { background-color: oklch(1 0 0 / 0.03); }
+  & thead th { background-color: oklch(0.208 0.042 265.8 / 0.025); }
+  & tbody tr:hover { background-color: color-mix(in oklab, var(--primary) 5%, transparent); }
   & tbody tr:last-child td { border-bottom: 0; }
 }
 

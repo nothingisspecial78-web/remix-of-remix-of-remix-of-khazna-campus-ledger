@@ -55,7 +55,7 @@ function SectorsPage() {
           const Icon = SECTOR_ICON[s.slug];
           const mgrs = managers.filter((m) => m.sectors.includes(s.slug));
           return (
-            <motion.div key={s.slug} {...reveal(i)} className="glass overflow-hidden" style={tileVar(s.color)}>
+            <motion.div key={s.slug} {...reveal(i)} className="glass hover-lift overflow-hidden" style={tileVar(s.color)}>
               <div className="tile-glossy rounded-none border-0 border-b p-5">
                 <div className="relative flex items-start justify-between">
                   <span className="tile-icon size-12">
@@ -91,7 +91,7 @@ function SectorsPage() {
                     <span className="text-tile num">{Math.round(p * 100)}%</span>
                   </div>
                   <div className="h-2 overflow-hidden rounded-full bg-accent">
-                    <motion.div className="h-full rounded-full bg-tile" initial={{ width: 0 }} animate={{ width: `${p * 100}%` }} transition={{ duration: 1, delay: 0.2 }} />
+                    <motion.div className="h-full rounded-full bg-tile" initial={{ width: 0 }} viewport={{ once: true, margin: "-30px" }} whileInView={{ width: `${p * 100}%` }} transition={{ duration: 1, delay: 0.2 }} />
                   </div>
                 </div>
                 <div className="flex items-center gap-2">

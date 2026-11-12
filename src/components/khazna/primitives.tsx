@@ -9,7 +9,7 @@ import { reveal } from "./motion";
 export function GlassCard({ className, children, transition, ...rest }: HTMLMotionProps<"div">) {
   const r = reveal();
   return (
-    <motion.div {...r} transition={{ ...r.transition, ...transition }} className={cn("glass", className)} {...rest}>
+    <motion.div {...r} transition={{ ...r.transition, ...transition }} className={cn("glass hover-lift", className)} {...rest}>
       {children}
     </motion.div>
   );
@@ -19,9 +19,16 @@ export function PageHeader({ eyebrow, title, description, actions }: { eyebrow?:
   return (
     <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
       <div>
-        {eyebrow && <div className="mb-1.5 text-xs font-medium uppercase tracking-[0.16em] text-primary">{eyebrow}</div>}
-        <h1 className="text-2xl font-semibold text-foreground md:text-3xl">{title}</h1>
-        {description && <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground">{description}</p>}
+        {eyebrow && (
+          <div className="mb-1.5 flex items-center gap-2 text-xs font-medium uppercase tracking-[0.16em] text-primary">
+            <motion.span className="h-px bg-gradient-primary" initial={{ width: 0 }} animate={{ width: 24 }} transition={{ duration: 0.6, delay: 0.15, ease: "easeOut" }} />
+            {eyebrow}
+          </div>
+        )}
+        <motion.h1 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, ease: "easeOut" }} className="text-2xl font-semibold text-foreground md:text-3xl">
+          {title}
+        </motion.h1>
+        {description && <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.1 }} className="mt-1.5 max-w-2xl text-sm text-muted-foreground">{description}</motion.p>}
       </div>
       {actions && <div className="no-print flex flex-wrap items-center gap-2">{actions}</div>}
     </div>
@@ -92,8 +99,10 @@ export function ProgressRing({
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const v = Math.max(0, Math.min(1, value));
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-30px" });
   return (
-    <div className="relative grid place-items-center" style={{ width: size, height: size }}>
+    <div ref={ref} className="relative grid place-items-center" style={{ width: size, height: size }}>
       <svg width={size} height={size} className="-rotate-90">
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--hairline)" strokeWidth={stroke} />
         <motion.circle
@@ -106,7 +115,7 @@ export function ProgressRing({
           strokeLinecap="round"
           strokeDasharray={c}
           initial={{ strokeDashoffset: c }}
-          animate={{ strokeDashoffset: c * (1 - v) }}
+          animate={{ strokeDashoffset: inView ? c * (1 - v) : c }}
           transition={{ duration: 1.2, delay, ease: [0.16, 1, 0.3, 1] }}
           style={{ filter: `drop-shadow(0 0 10px color-mix(in oklab, ${color} 55%, transparent))` }}
         />
@@ -131,17 +140,21 @@ export function StatCard({
   tone?: "primary" | "credit" | "debit" | "info" | undefined;
   delay?: number | undefined;
 }) {
+  const blobTone = { primary: "bg-primary/20", credit: "bg-credit/20", debit: "bg-debit/20", info: "bg-info/20" }[tone];
+  const barTone = { primary: "bg-primary", credit: "bg-credit", debit: "bg-debit", info: "bg-info" }[tone];
   const iconTone = { primary: "text-primary bg-primary/12 border-primary/25", credit: "text-credit bg-credit/12 border-credit/25", debit: "text-debit bg-debit/12 border-debit/25", info: "text-info bg-info/12 border-info/25" }[tone];
   return (
-    <GlassCard transition={{ delay, duration: 0.45 }} className="p-5">
-      <div className="flex items-start justify-between gap-3">
+    <GlassCard transition={{ delay }} className="group relative overflow-hidden p-5">
+      <div className={cn("pointer-events-none absolute -right-10 -top-10 size-32 rounded-full opacity-60 blur-2xl transition-all duration-500 group-hover:scale-125 group-hover:opacity-100", blobTone)} />
+      <div className="relative flex items-start justify-between gap-3">
         <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</div>
-        <div className={cn("grid size-9 place-items-center rounded-xl border", iconTone)}>
+        <div className={cn("grid size-9 place-items-center rounded-xl border transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110", iconTone)}>
           <Icon className="size-4" />
         </div>
       </div>
-      <div className="mt-3 font-display text-2xl font-semibold text-foreground num md:text-[1.7rem]">{value}</div>
-      {hint && <div className="mt-1.5 text-xs text-muted-foreground">{hint}</div>}
+      <div className="relative mt-3 font-display text-2xl font-semibold text-foreground num md:text-[1.7rem]">{value}</div>
+      {hint && <div className="relative mt-1.5 text-xs text-muted-foreground">{hint}</div>}
+      <div className={cn("absolute inset-x-0 bottom-0 h-0.5 origin-left scale-x-0 transition-transform duration-500 group-hover:scale-x-100", barTone)} />
     </GlassCard>
   );
 }

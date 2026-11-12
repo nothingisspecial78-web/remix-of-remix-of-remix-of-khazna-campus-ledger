@@ -147,7 +147,7 @@ function AdminDashboard() {
                     <span className="text-foreground num">{Math.round(p * 100)}%</span>
                   </div>
                   <div className="h-1.5 overflow-hidden rounded-full bg-accent">
-                    <motion.div className="h-full rounded-full bg-tile" initial={{ width: 0 }} animate={{ width: `${p * 100}%` }} transition={{ duration: 1, delay: 0.3 }} />
+                    <motion.div className="h-full rounded-full bg-tile" initial={{ width: 0 }} viewport={{ once: true, margin: "-30px" }} whileInView={{ width: `${p * 100}%` }} transition={{ duration: 1, delay: 0.3 }} />
                   </div>
                 </div>
               );
