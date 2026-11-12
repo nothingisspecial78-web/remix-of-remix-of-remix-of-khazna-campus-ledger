@@ -62,7 +62,7 @@ function StudentHome() {
       <div className="mb-6">
         <div className="text-xs font-medium uppercase tracking-[0.16em] text-primary">{formatDate(TODAY)}</div>
         <h1 className="mt-1 text-2xl font-semibold md:text-3xl">
-          Assalamu Alaikum, <span className="text-gradient-primary">{first}</span>
+          Good day, <span className="text-gradient-primary">{first}</span>
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {me.className} · Ad.No <span className="num">{me.id}</span>

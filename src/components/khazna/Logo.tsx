@@ -10,7 +10,7 @@ export function Logo({ size = "md" }: { size?: "md" | "lg" }) {
       </span>
       <span className="leading-none">
         <span className={`flex items-baseline gap-1.5 font-display font-semibold text-foreground ${lg ? "text-2xl" : "text-lg"}`}>
-          Khazna <span className="font-arabic text-sm font-normal text-primary">خزنة</span>
+          Khazna
         </span>
         <span className="mt-0.5 hidden text-[10px] uppercase tracking-[0.18em] text-subtle sm:block">Islahul Uloom</span>
       </span>

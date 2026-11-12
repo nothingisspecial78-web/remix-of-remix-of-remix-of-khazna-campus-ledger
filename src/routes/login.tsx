@@ -86,7 +86,7 @@ function LoginPage() {
         <Logo size="lg" />
         <div className="relative max-w-lg">
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-            <div className="font-arabic text-5xl text-primary/90">خزنة</div>
+            <div className="font-display text-5xl font-semibold text-primary/90">Khazna</div>
             <h1 className="mt-4 text-5xl font-semibold leading-[1.05] text-foreground">
               Every rupee,
               <br />

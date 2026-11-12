@@ -52,7 +52,7 @@ function AdminDashboard() {
         eyebrow="Super Admin · Dashboard"
         title={
           <>
-            Assalamu Alaikum, <span className="text-gradient-primary">Abdulla</span>
+            Welcome back, <span className="text-gradient-primary">Abdulla</span>
           </>
         }
         description="Here's how money is moving across every sector of Islahul Uloom this term."
