@@ -28,3 +28,8 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Project rules
+- Khazna is UI-only: all data lives in the Zustand store in src/lib/khazna (seeded, deterministic mock data with a fixed TODAY) — keeps SSR and browser output identical and avoids any backend.
+- Balance math (credits minus debits, voided entries excluded) lives only in src/lib/khazna/ledger.ts and is covered by ledger.test.ts — keep pages calling it instead of re-implementing.
+- Sector colors reach components via the `--tile` CSS variable (tileVar helper + tile-* utilities in styles.css) — never hardcode sector colors in components.

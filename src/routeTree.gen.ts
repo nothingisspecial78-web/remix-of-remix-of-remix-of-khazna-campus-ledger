@@ -18,6 +18,8 @@ import { Route as AdminAdminsRouteImport } from './routes/admin.admins'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
 import { Route as AdminSectorsRouteImport } from './routes/admin.sectors'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AppNotificationsRouteImport } from './routes/app.notifications'
+import { Route as AppProfileRouteImport } from './routes/app.profile'
 import { Route as MSectorSlugRouteImport } from './routes/m.$sectorSlug'
 import { Route as AdminStudentsIndexRouteImport } from './routes/admin.students.index'
 import { Route as AdminStudentsImportRouteImport } from './routes/admin.students.import'
@@ -71,6 +73,16 @@ const AdminSectorsRoute = AdminSectorsRouteImport.update({
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppNotificationsRoute = AppNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProfileRoute = AppProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => AppRoute,
 } as any)
 const MSectorSlugRoute = MSectorSlugRouteImport.update({
@@ -127,6 +139,8 @@ export interface FileRoutesByFullPath {
   '/admin/admins': typeof AdminAdminsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/sectors': typeof AdminSectorsRoute
+  '/app/notifications': typeof AppNotificationsRoute
+  '/app/profile': typeof AppProfileRoute
   '/m/$sectorSlug': typeof MSectorSlugRouteWithChildren
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
@@ -145,6 +159,8 @@ export interface FileRoutesByTo {
   '/admin/admins': typeof AdminAdminsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/sectors': typeof AdminSectorsRoute
+  '/app/notifications': typeof AppNotificationsRoute
+  '/app/profile': typeof AppProfileRoute
   '/admin': typeof AdminIndexRoute
   '/app': typeof AppIndexRoute
   '/admin/students/import': typeof AdminStudentsImportRoute
@@ -165,6 +181,8 @@ export interface FileRoutesById {
   '/admin/admins': typeof AdminAdminsRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/sectors': typeof AdminSectorsRoute
+  '/app/notifications': typeof AppNotificationsRoute
+  '/app/profile': typeof AppProfileRoute
   '/m/$sectorSlug': typeof MSectorSlugRouteWithChildren
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
@@ -187,6 +205,8 @@ export interface FileRouteTypes {
     | '/admin/admins'
     | '/admin/audit'
     | '/admin/sectors'
+    | '/app/notifications'
+    | '/app/profile'
     | '/m/$sectorSlug'
     | '/admin/'
     | '/app/'
@@ -205,6 +225,8 @@ export interface FileRouteTypes {
     | '/admin/admins'
     | '/admin/audit'
     | '/admin/sectors'
+    | '/app/notifications'
+    | '/app/profile'
     | '/admin'
     | '/app'
     | '/admin/students/import'
@@ -224,6 +246,8 @@ export interface FileRouteTypes {
     | '/admin/admins'
     | '/admin/audit'
     | '/admin/sectors'
+    | '/app/notifications'
+    | '/app/profile'
     | '/m/$sectorSlug'
     | '/admin/'
     | '/app/'
@@ -308,6 +332,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/app/'
       preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/notifications': {
+      id: '/app/notifications'
+      path: '/notifications'
+      fullPath: '/app/notifications'
+      preLoaderRoute: typeof AppNotificationsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/profile': {
+      id: '/app/profile'
+      path: '/profile'
+      fullPath: '/app/profile'
+      preLoaderRoute: typeof AppProfileRouteImport
       parentRoute: typeof AppRoute
     }
     '/m/$sectorSlug': {
@@ -397,11 +435,15 @@ const AdminRouteChildren: AdminRouteChildren = {
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface AppRouteChildren {
+  AppNotificationsRoute: typeof AppNotificationsRoute
+  AppProfileRoute: typeof AppProfileRoute
   AppIndexRoute: typeof AppIndexRoute
   AppSSectorSlugRoute: typeof AppSSectorSlugRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppNotificationsRoute: AppNotificationsRoute,
+  AppProfileRoute: AppProfileRoute,
   AppIndexRoute: AppIndexRoute,
   AppSSectorSlugRoute: AppSSectorSlugRoute,
 }
