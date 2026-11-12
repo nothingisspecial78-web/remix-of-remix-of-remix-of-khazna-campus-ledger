@@ -1,11 +1,11 @@
 {
-  "version": 1,
   "asset_id": "de78a3c6-15a6-4340-aece-fc001d4081f9",
-  "project_id": "ecb421e5-f6a8-48b6-aabd-9009813cc972",
-  "url": "/__l5e/assets-v1/de78a3c6-15a6-4340-aece-fc001d4081f9/campus-backdrop.jpg",
-  "r2_key": "a/v1/ecb421e5-f6a8-48b6-aabd-9009813cc972/de78a3c6-15a6-4340-aece-fc001d4081f9/campus-backdrop.jpg",
-  "original_filename": "campus-backdrop.jpg",
-  "size": 208936,
   "content_type": "image/jpeg",
-  "created_at": "2026-11-12T18:36:15Z"
+  "created_at": "2026-11-12T18:36:15Z",
+  "original_filename": "campus-backdrop.jpg",
+  "project_id": "a7b4bce1-f1ec-4b10-a617-5908e00b30c6",
+  "r2_key": "a/v1/a7b4bce1-f1ec-4b10-a617-5908e00b30c6/de78a3c6-15a6-4340-aece-fc001d4081f9/campus-backdrop.jpg",
+  "size": 208936,
+  "url": "/__l5e/assets-v1/de78a3c6-15a6-4340-aece-fc001d4081f9/campus-backdrop.jpg",
+  "version": 1
 }
