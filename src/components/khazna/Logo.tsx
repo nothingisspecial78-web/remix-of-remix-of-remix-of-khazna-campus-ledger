@@ -1,5 +1,4 @@
 import { Link } from "@tanstack/react-router";
-import { Vault } from "lucide-react";
 import { useKhazna } from "@/lib/khazna/store";
 
 export function Logo({ size = "md", tagline }: { size?: "md" | "lg"; tagline?: string }) {
@@ -7,8 +6,8 @@ export function Logo({ size = "md", tagline }: { size?: "md" | "lg"; tagline?: s
   const college = useKhazna((s) => s.college.name);
   return (
     <Link to="/login" className="flex items-center gap-2.5">
-      <span className={`grid place-items-center rounded-xl bg-gradient-primary text-primary-foreground shadow-glow ${lg ? "size-11" : "size-9"}`}>
-        <Vault className={lg ? "size-5" : "size-[18px]"} />
+      <span className={`overflow-hidden rounded-xl shadow-glow ${lg ? "size-11" : "size-9"}`}>
+        <img src="/icon-192.png" alt="Khazna" className="size-full object-cover" />
       </span>
       <span className="leading-none">
         <span className={`flex items-baseline gap-1.5 font-display font-semibold text-foreground ${lg ? "text-2xl" : "text-lg"}`}>
