@@ -30,6 +30,7 @@ import { studentSectorBalances } from "@/lib/khazna/selectors";
 import { useKhazna } from "@/lib/khazna/store";
 import type { Batch, TxType } from "@/lib/khazna/types";
 import { cn } from "@/lib/utils";
+import { reveal } from "@/components/khazna/motion";
 
 export const Route = createFileRoute("/m/$sectorSlug/bulk")({
   head: () => ({
@@ -241,9 +242,7 @@ function BulkPage() {
                       key={s.id}
                       type="button"
                       layout
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: Math.min(i * 0.015, 0.3) }}
+                      {...reveal(i)}
                       onClick={() => toggle(s.id)}
                       className={cn(
                         "flex items-center gap-3 rounded-2xl border p-3 text-left transition-all",
@@ -442,7 +441,7 @@ function BulkPage() {
                   </thead>
                   <tbody>
                     {preview.map((p, i) => (
-                      <motion.tr key={p.s.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: Math.min(i * 0.025, 0.5) }}>
+                      <motion.tr key={p.s.id} {...reveal(i)}>
                         <td className="num text-subtle">{i + 1}</td>
                         <td>
                           <div className="flex items-center gap-2.5">

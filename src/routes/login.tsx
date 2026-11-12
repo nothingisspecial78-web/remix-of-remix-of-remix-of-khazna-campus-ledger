@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, Eye, EyeOff, GraduationCap, KeyRound, Loader2, Lock, ShieldCheck, User, UserCog } from "lucide-react";
+import { ArrowRight, Check, Eye, EyeOff, GraduationCap, KeyRound, Loader2, Lock, ShieldCheck, User, UserCog } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Btn } from "@/components/khazna/btn";
@@ -8,6 +8,7 @@ import { Logo } from "@/components/khazna/Logo";
 import { Field } from "@/components/khazna/primitives";
 import { SECTOR_ICON, tileVar } from "@/components/khazna/sector-meta";
 import { SECTORS } from "@/lib/khazna/data";
+import { markSignInTransition } from "@/lib/khazna/sign-in-transition";
 import { useKhazna } from "@/lib/khazna/store";
 import type { Role } from "@/lib/khazna/types";
 import { cn } from "@/lib/utils";
@@ -39,7 +40,10 @@ function LoginPage() {
   const [user, setUser] = useState(DEMO.admin.user);
   const [pass, setPass] = useState("khazna@2026");
   const [show, setShow] = useState(false);
-  const [loading, setLoading] = useState(false);
+  // idle → loading (button pulses) → leaving (card zooms out, glow hand-off) → navigate
+  const [phase, setPhase] = useState<"idle" | "loading" | "leaving">("idle");
+  const loading = phase === "loading";
+  const leaving = phase === "leaving";
   const [error, setError] = useState("");
 
   const choose = (r: Role) => {
@@ -51,24 +55,34 @@ function LoginPage() {
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
+    if (phase !== "idle") return;
     if (!user.trim() || pass.length < 6) {
       setError("Enter your Ad.No / email and a password of at least 6 characters.");
       return;
     }
     setError("");
-    setLoading(true);
+    setPhase("loading");
     setTimeout(() => {
-      toast.success(`Welcome back — signed in as ${DEMO[role].label}`);
-      if (role === "admin") navigate({ to: "/admin" });
-      else if (role === "manager") navigate({ to: "/m/$sectorSlug", params: { sectorSlug: managerSector } });
-      else navigate({ to: "/app" });
-    }, 750);
+      setPhase("leaving");
+      markSignInTransition();
+      setTimeout(() => {
+        toast.success(`Welcome back — signed in as ${DEMO[role].label}`);
+        if (role === "admin") navigate({ to: "/admin" });
+        else if (role === "manager") navigate({ to: "/m/$sectorSlug", params: { sectorSlug: managerSector } });
+        else navigate({ to: "/app" });
+      }, 720);
+    }, 800);
   };
 
   return (
     <div className="relative grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
       {/* Brand side */}
-      <div className="relative hidden flex-col justify-between overflow-hidden p-12 lg:flex">
+      <motion.div
+        initial={false}
+        animate={leaving ? { opacity: 0, x: -48, filter: "blur(10px)" } : { opacity: 1, x: 0, filter: "blur(0px)" }}
+        transition={{ duration: 0.6, ease: [0.65, 0, 0.35, 1] }}
+        className="relative hidden flex-col justify-between overflow-hidden p-12 lg:flex"
+      >
         <Logo size="lg" />
         <div className="relative max-w-lg">
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
@@ -116,11 +130,17 @@ function LoginPage() {
             <div className="font-display text-2xl font-semibold text-foreground num">100%</div>audited
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Form side */}
       <div className="flex items-center justify-center p-4 sm:p-8">
-        <motion.div initial={{ opacity: 0, scale: 0.97, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }} className="glass w-full max-w-md p-6 sm:p-8">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.97, y: 16 }}
+          animate={leaving ? { opacity: 0, scale: 1.08, y: -10, filter: "blur(14px)" } : { opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
+          transition={leaving ? { duration: 0.65, ease: [0.65, 0, 0.35, 1] } : { duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className={cn("glass w-full max-w-md p-6 sm:p-8 transition-shadow duration-500", phase !== "idle" && "shadow-glow")}
+          aria-busy={phase !== "idle"}
+        >
           <div className="mb-6 lg:hidden">
             <Logo />
           </div>
@@ -180,15 +200,77 @@ function LoginPage() {
                 Forgot password?
               </button>
             </div>
-            <Btn type="submit" variant="primary" size="lg" className="w-full" disabled={loading}>
-              {loading ? <Loader2 className="animate-spin" /> : <KeyRound />}
-              {loading ? "Signing in…" : `Continue as ${DEMO[role].label}`}
-              {!loading && <ArrowRight />}
-            </Btn>
+            <div className="relative">
+              {/* Pulse rings radiating from the button while signing in */}
+              <AnimatePresence>
+                {phase !== "idle" &&
+                  [0, 1, 2].map((k) => (
+                    <motion.span
+                      key={k}
+                      aria-hidden
+                      className="pointer-events-none absolute inset-0 rounded-xl border border-primary"
+                      initial={{ opacity: 0.8, scale: 1 }}
+                      animate={{ opacity: 0, scale: 1.25 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 1.3, delay: k * 0.4, repeat: Infinity, ease: "easeOut" }}
+                    />
+                  ))}
+              </AnimatePresence>
+              <Btn type="submit" variant="primary" size="lg" className={cn("relative w-full overflow-hidden", phase !== "idle" && "brightness-110")}>
+                {phase !== "idle" && (
+                  <motion.span
+                    aria-hidden
+                    className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 bg-gradient-to-r from-transparent via-primary-foreground/25 to-transparent"
+                    initial={{ x: "0%" }}
+                    animate={{ x: "400%" }}
+                    transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                )}
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.span
+                    key={phase}
+                    className="relative inline-flex items-center gap-2"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {loading ? <Loader2 className="animate-spin" /> : leaving ? <Check /> : <KeyRound />}
+                    {loading ? "Verifying…" : leaving ? "Opening your dashboard" : `Continue as ${DEMO[role].label}`}
+                    {phase === "idle" && <ArrowRight />}
+                  </motion.span>
+                </AnimatePresence>
+              </Btn>
+            </div>
           </form>
           <p className="mt-6 text-center text-[11px] text-subtle">Demo preview · all data is sample data stored in your browser session.</p>
         </motion.div>
       </div>
+
+      <AnimatePresence>
+        {leaving && (
+          <motion.div aria-hidden className="pointer-events-none fixed inset-0 z-50 grid place-items-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, ease: "easeOut" }}>
+            <div className="signin-glow absolute inset-0" />
+            {[0, 1].map((k) => (
+              <motion.span
+                key={k}
+                className="absolute size-40 rounded-full border-2 border-primary shadow-glow"
+                initial={{ scale: 0.2, opacity: 0.9 }}
+                animate={{ scale: 7, opacity: 0 }}
+                transition={{ duration: 0.9, delay: k * 0.18, ease: [0.22, 1, 0.36, 1] }}
+              />
+            ))}
+            <motion.span
+              className="relative grid size-20 place-items-center rounded-full border border-primary/50 bg-primary/15 text-primary shadow-glow backdrop-blur-xl"
+              initial={{ scale: 0, rotate: -40 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: "spring", stiffness: 260, damping: 16, delay: 0.1 }}
+            >
+              <Check className="size-9" strokeWidth={2.5} />
+            </motion.span>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

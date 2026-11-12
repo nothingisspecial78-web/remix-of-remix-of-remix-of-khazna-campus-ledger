@@ -9,6 +9,7 @@ import { formatDate, formatTime, timeAgo } from "@/lib/khazna/format";
 import { useKhazna } from "@/lib/khazna/store";
 import type { Notice, Sector } from "@/lib/khazna/types";
 import { cn } from "@/lib/utils";
+import { reveal } from "@/components/khazna/motion";
 
 export const Route = createFileRoute("/app/notifications")({
   head: () => ({
@@ -148,7 +149,7 @@ function NotificationsPage() {
             const sec = sectorOf(n);
             const isSel = n.id === selectedId;
             return (
-              <motion.div key={n.id} layout initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
+              <motion.div key={n.id} layout {...reveal(i)}>
                 <button
                   type="button"
                   onClick={() => open(n)}

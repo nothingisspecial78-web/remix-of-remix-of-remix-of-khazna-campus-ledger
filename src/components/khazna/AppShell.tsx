@@ -23,8 +23,9 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { SUPER_ADMIN, managerNameFor } from "@/lib/khazna/data";
+import { clearSignInTransition, isSignInTransitionPending } from "@/lib/khazna/sign-in-transition";
 import { useKhazna } from "@/lib/khazna/store";
 import type { Role, SectorSlug } from "@/lib/khazna/types";
 import { cn } from "@/lib/utils";
@@ -200,6 +201,11 @@ export function AppShell({ role, sectorSlug, children }: { role: Role; sectorSlu
   const unread = useKhazna((s) => s.notices.filter((n) => !n.read).length);
   const me = useKhazna((s) => s.students.find((x) => x.id === s.meStudentId)!);
   const [mobileOpen, setMobileOpen] = useState(false);
+  // Arriving straight from the login hand-off: play a one-time blur-to-sharp reveal.
+  const [entering, setEntering] = useState(isSignInTransitionPending);
+  useEffect(() => {
+    clearSignInTransition();
+  }, []);
   const slug = sectorSlug ?? managerSector;
   const current = sectors.find((s) => s.slug === slug)!;
   const RoleIcon = ROLE_META[role].icon;
@@ -230,7 +236,13 @@ export function AppShell({ role, sectorSlug, children }: { role: Role; sectorSlu
 
   return (
     <div className="min-h-screen">
-      <header className="no-print sticky top-0 z-40 px-2 pt-2 md:px-4 md:pt-3">
+      {entering && <motion.div aria-hidden className="signin-glow pointer-events-none fixed inset-0 z-[70]" initial={{ opacity: 1 }} animate={{ opacity: 0 }} transition={{ duration: 0.9, ease: "easeOut" }} />}
+      <motion.header
+        initial={entering ? { opacity: 0, y: -18 } : false}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+        className="no-print sticky top-0 z-40 px-2 pt-2 md:px-4 md:pt-3"
+      >
         <div className="glass-strong mx-auto flex h-16 max-w-[1440px] items-center gap-2 rounded-2xl px-3 md:gap-3 md:px-4">
           <button className="rounded-lg p-2 text-muted-foreground hover:bg-accent lg:hidden" onClick={() => setMobileOpen(true)} aria-label="Open menu">
             <MenuIcon className="size-5" />
@@ -340,17 +352,28 @@ export function AppShell({ role, sectorSlug, children }: { role: Role; sectorSlu
             )}
           </div>
         </div>
-      </header>
+      </motion.header>
 
       <div className="mx-auto flex max-w-[1440px] gap-6 px-3 pb-20 pt-5 md:px-6 md:pt-6">
-        <aside className="no-print hidden w-60 shrink-0 lg:block">
+        <motion.aside
+          initial={entering ? { opacity: 0, x: -24 } : false}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
+          className="no-print hidden w-60 shrink-0 lg:block"
+        >
           <div className="glass sticky top-[6.25rem] p-3">
             <ContextCard role={role} sectorSlug={slug} />
             <NavList role={role} sectorSlug={slug} />
           </div>
-        </aside>
+        </motion.aside>
         <main className="min-w-0 flex-1">
-          <motion.div key={pathname} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}>
+          <motion.div
+            key={pathname}
+            initial={entering ? { opacity: 0, y: 28, scale: 0.97, filter: "blur(14px)" } : { opacity: 0, y: 10 }}
+            animate={entering ? { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", transitionEnd: { filter: "none" } } : { opacity: 1, y: 0 }}
+            transition={entering ? { duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] } : { duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            onAnimationComplete={() => entering && setEntering(false)}
+          >
             {children}
           </motion.div>
         </main>

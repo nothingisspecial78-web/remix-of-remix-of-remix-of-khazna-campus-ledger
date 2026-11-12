@@ -11,6 +11,7 @@ import { formatDate, formatINR, timeAgo } from "@/lib/khazna/format";
 import { useKhazna } from "@/lib/khazna/store";
 import type { Batch } from "@/lib/khazna/types";
 import { cn } from "@/lib/utils";
+import { reveal } from "@/components/khazna/motion";
 
 export const Route = createFileRoute("/m/$sectorSlug/batches")({
   head: () => ({
@@ -52,16 +53,16 @@ function BatchesPage() {
       />
 
       {batches.length === 0 ? (
-        <div className="glass">
+        <motion.div {...reveal()} className="glass">
           <EmptyState icon={FileSpreadsheet} title="No batches yet" body="Use Bulk Entry to post the same fee to a whole class." />
-        </div>
+        </motion.div>
       ) : (
         <div className="space-y-3">
           {batches.map((b, i) => {
             const total = b.amount * b.studentIds.length;
             const expanded = open === b.id;
             return (
-              <motion.div key={b.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className={cn("glass overflow-hidden", b.voided && "opacity-70")}>
+              <motion.div key={b.id} {...reveal(i, 0, b.voided ? 0.7 : 1)} className="glass overflow-hidden">
                 <div className="flex flex-col gap-4 p-4 md:flex-row md:items-center md:p-5">
                   <button className="flex flex-1 items-center gap-4 text-left" onClick={() => setOpen(expanded ? null : b.id)}>
                     <span className={cn("grid size-11 shrink-0 place-items-center rounded-xl border", b.voided ? "border-hairline bg-accent text-subtle" : b.type === "credit" ? "border-credit/30 bg-credit/12 text-credit" : "border-debit/30 bg-debit/12 text-debit")}>

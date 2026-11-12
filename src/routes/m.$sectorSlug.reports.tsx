@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { createFileRoute } from "@tanstack/react-router";
 import { FileDown, FileSpreadsheet, FileText, Loader2, Printer, Table2 } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -8,6 +9,7 @@ import { addDays, formatDate, formatINR, TODAY } from "@/lib/khazna/format";
 import { asSector } from "@/lib/khazna/data";
 import { downloadCSV } from "@/lib/khazna/download";
 import { useKhazna } from "@/lib/khazna/store";
+import { reveal } from "@/components/khazna/motion";
 
 export const Route = createFileRoute("/m/$sectorSlug/reports")({
   head: () => ({
@@ -114,20 +116,20 @@ function ReportsPage() {
       </GlassCard>
 
       <div className="mb-4 grid grid-cols-3 gap-3">
-        <div className="glass p-4">
+        <motion.div {...reveal()} className="glass p-4">
           <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Total credit</div>
           <div className="font-display text-xl font-semibold text-credit num">{formatINR(sum.credit)}</div>
-        </div>
-        <div className="glass p-4">
+        </motion.div>
+        <motion.div {...reveal(1)} className="glass p-4">
           <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Total debit</div>
           <div className="font-display text-xl font-semibold text-debit num">{formatINR(sum.debit)}</div>
-        </div>
-        <div className="glass p-4">
+        </motion.div>
+        <motion.div {...reveal(2)} className="glass p-4">
           <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Net balance</div>
           <div className="font-display text-xl font-semibold">
             <Amount value={sum.balance} />
           </div>
-        </div>
+        </motion.div>
       </div>
 
       <TableShell>
@@ -147,7 +149,7 @@ function ReportsPage() {
             </thead>
             <tbody>
               {rows.map((r) => (
-                <tr key={r.s.id}>
+                <motion.tr {...reveal()} key={r.s.id}>
                   <td>
                     <div className="flex items-center gap-2.5">
                       <Avatar name={r.s.name} size={28} />
@@ -161,11 +163,11 @@ function ReportsPage() {
                   <td className="text-right font-semibold">
                     <Amount value={r.balance} />
                   </td>
-                </tr>
+                </motion.tr>
               ))}
             </tbody>
             <tfoot>
-              <tr className="bg-accent">
+              <motion.tr {...reveal()} className="bg-accent">
                 <td colSpan={3} className="px-4 py-3 font-semibold text-foreground">
                   Totals · {rows.length} students
                 </td>
@@ -174,7 +176,7 @@ function ReportsPage() {
                 <td className="px-4 py-3 text-right font-semibold">
                   <Amount value={sum.balance} />
                 </td>
-              </tr>
+              </motion.tr>
             </tfoot>
           </table>
         )}

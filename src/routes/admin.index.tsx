@@ -11,6 +11,7 @@ import { formatCompactINR, formatINR, timeAgo } from "@/lib/khazna/format";
 import { totals } from "@/lib/khazna/ledger";
 import { inLastDays, pendingDues } from "@/lib/khazna/selectors";
 import { useKhazna } from "@/lib/khazna/store";
+import { reveal } from "@/components/khazna/motion";
 
 export const Route = createFileRoute("/admin/")({
   head: () => ({
@@ -166,7 +167,7 @@ function AdminDashboard() {
               const Icon = AUDIT_ICON[a.action];
               const tone = a.action.startsWith("VOID") ? "text-debit bg-debit/12" : a.action === "BULK_POST" || a.action === "CREATE_ENTRY" ? "text-credit bg-credit/12" : "text-info bg-info/12";
               return (
-                <motion.li key={a.id} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 + i * 0.04 }} className="flex items-center gap-3 py-3">
+                <motion.li key={a.id} {...reveal(i)} className="flex items-center gap-3 py-3">
                   <span className={`grid size-9 shrink-0 place-items-center rounded-xl ${tone}`}>
                     <Icon className="size-4" />
                   </span>

@@ -189,18 +189,26 @@
     position: absolute;
     inset: -80px; /* overscan so the blur never shows light edges */
     background-size: cover;
-    background-position: center 40%;
-    filter: blur(32px) brightness(0.35) saturate(130%);
+    background-position: center 35%;
+    filter: blur(20px) brightness(0.68) saturate(125%);
     transform: scale(1.04);
   }
   & > .app-backdrop-veil {
     position: absolute;
     inset: 0;
     background:
-      radial-gradient(60rem 40rem at 8% -10%, color-mix(in oklab, var(--primary) 12%, transparent), transparent 60%),
+      radial-gradient(60rem 40rem at 8% -10%, color-mix(in oklab, var(--primary) 8%, transparent), transparent 60%),
       radial-gradient(50rem 36rem at 105% 10%, color-mix(in oklab, var(--info) 8%, transparent), transparent 60%),
-      radial-gradient(ellipse 120% 90% at 50% 35%, color-mix(in oklab, var(--background) 70%, transparent) 0%, color-mix(in oklab, var(--background) 74%, transparent) 50%, color-mix(in oklab, var(--background) 90%, transparent) 100%);
+      radial-gradient(ellipse 120% 90% at 50% 35%, color-mix(in oklab, var(--background) 45%, transparent) 0%, color-mix(in oklab, var(--background) 52%, transparent) 50%, color-mix(in oklab, var(--background) 65%, transparent) 100%);
   }
+}
+
+/* Sign-in hand-off glow: covers the screen as the login card leaves and fades out as the dashboard arrives. */
+@utility signin-glow {
+  background:
+    radial-gradient(circle at 50% 50%, color-mix(in oklab, var(--primary) 30%, transparent) 0%, color-mix(in oklab, var(--primary) 10%, transparent) 30%, transparent 65%),
+    color-mix(in oklab, var(--background) 70%, transparent);
+  backdrop-filter: blur(6px);
 }
 
 /* ---------- Glass surfaces ---------- */

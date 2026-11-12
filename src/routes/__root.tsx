@@ -11,7 +11,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
-import campusBackdrop from "@/assets/campus-backdrop.jpg.asset.json";
+import campusBackdrop from "@/assets/campus-clean.jpg.asset.json";
 import { Toaster } from "@/components/ui/sonner";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 

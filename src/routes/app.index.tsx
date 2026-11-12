@@ -11,6 +11,7 @@ import { downloadCSV } from "@/lib/khazna/download";
 import { formatDate, formatINR, formatShortDate, timeAgo, TODAY } from "@/lib/khazna/format";
 import { totals } from "@/lib/khazna/ledger";
 import { useKhazna } from "@/lib/khazna/store";
+import { reveal } from "@/components/khazna/motion";
 
 export const Route = createFileRoute("/app/")({
   head: () => ({
@@ -145,7 +146,7 @@ function StudentHome() {
               const s = sectors.find((x) => x.slug === t.sector)!;
               const Icon = SECTOR_ICON[t.sector];
               return (
-                <motion.li key={t.id} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 + i * 0.04 }} className="flex items-center gap-3 py-3">
+                <motion.li key={t.id} {...reveal(i)} className="flex items-center gap-3 py-3">
                   <span className="tile-icon size-9 shrink-0" style={tileVar(s.color)}>
                     <Icon className="size-4" />
                   </span>

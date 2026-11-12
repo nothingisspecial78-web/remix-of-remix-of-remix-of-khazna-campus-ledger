@@ -10,6 +10,7 @@ import { TODAY } from "@/lib/khazna/format";
 import { useKhazna } from "@/lib/khazna/store";
 import type { Student } from "@/lib/khazna/types";
 import { cn } from "@/lib/utils";
+import { reveal } from "@/components/khazna/motion";
 
 export const Route = createFileRoute("/admin/students/import")({
   head: () => ({
@@ -291,7 +292,7 @@ function ImportPage() {
                   </thead>
                   <tbody>
                     {shown.map((v) => (
-                      <tr key={v.idx} className={v.errors.length ? "bg-debit/[0.04]" : ""}>
+                      <motion.tr {...reveal()} key={v.idx} className={v.errors.length ? "bg-debit/[0.04]" : ""}>
                         <td className="num text-subtle">{v.idx}</td>
                         <td>
                           {v.errors.length ? (
@@ -318,7 +319,7 @@ function ImportPage() {
                             {!v.errors.length && <span className="text-xs text-subtle">—</span>}
                           </div>
                         </td>
-                      </tr>
+                      </motion.tr>
                     ))}
                   </tbody>
                 </table>

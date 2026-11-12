@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { createFileRoute } from "@tanstack/react-router";
 import { Ban, Download, Layers, Plus, ReceiptText } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -13,6 +14,7 @@ import { totals } from "@/lib/khazna/ledger";
 import { useKhazna } from "@/lib/khazna/store";
 import type { Tx } from "@/lib/khazna/types";
 import { cn } from "@/lib/utils";
+import { reveal } from "@/components/khazna/motion";
 
 export const Route = createFileRoute("/m/$sectorSlug/ledger")({
   head: () => ({
@@ -95,7 +97,7 @@ function LedgerPage() {
         }
       />
 
-      <div className="glass mb-4 space-y-3 p-3">
+      <motion.div {...reveal()} className="glass mb-4 space-y-3 p-3">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <SearchInput value={q} onChange={(v) => { setQ(v); reset(); }} placeholder="Student, Ad.No, title or receipt…" className="lg:flex-1" />
           <Segmented
@@ -119,23 +121,23 @@ function LedgerPage() {
           <input type="date" className="k-input num" value={from} max={to || TODAY} onChange={(e) => { setFrom(e.target.value); reset(); }} aria-label="From date" />
           <input type="date" className="k-input num" value={to} min={from} max={TODAY} onChange={(e) => { setTo(e.target.value); reset(); }} aria-label="To date" />
         </div>
-      </div>
+      </motion.div>
 
       <div className="mb-4 grid grid-cols-3 gap-3">
-        <div className="glass p-3 md:p-4">
+        <motion.div {...reveal()} className="glass p-3 md:p-4">
           <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Credits</div>
           <div className="font-semibold text-credit num md:text-lg">{formatINR(sum.credit)}</div>
-        </div>
-        <div className="glass p-3 md:p-4">
+        </motion.div>
+        <motion.div {...reveal(1)} className="glass p-3 md:p-4">
           <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Debits</div>
           <div className="font-semibold text-debit num md:text-lg">{formatINR(sum.debit)}</div>
-        </div>
-        <div className="glass p-3 md:p-4">
+        </motion.div>
+        <motion.div {...reveal(2)} className="glass p-3 md:p-4">
           <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Net</div>
           <div className="font-semibold md:text-lg">
             <Amount value={sum.balance} />
           </div>
-        </div>
+        </motion.div>
       </div>
 
       <TableShell>
@@ -158,7 +160,7 @@ function LedgerPage() {
               {rows.map((t) => {
                 const st = byId.get(t.studentId);
                 return (
-                  <tr key={t.id} className={cn(t.voided && "opacity-55")}>
+                  <motion.tr {...reveal(0, 0, t.voided ? 0.55 : 1)} key={t.id}>
                     <td className="num text-muted-foreground">{formatDate(t.date)}</td>
                     <td className="font-mono text-xs text-muted-foreground">{t.receiptNo}</td>
                     <td>
@@ -198,7 +200,7 @@ function LedgerPage() {
                         </Btn>
                       )}
                     </td>
-                  </tr>
+                  </motion.tr>
                 );
               })}
             </tbody>

@@ -12,6 +12,7 @@ import { formatDate, formatINR, TODAY } from "@/lib/khazna/format";
 import { totals } from "@/lib/khazna/ledger";
 import { useKhazna } from "@/lib/khazna/store";
 import type { Student } from "@/lib/khazna/types";
+import { reveal } from "@/components/khazna/motion";
 
 export const Route = createFileRoute("/admin/students/")({
   head: () => ({
@@ -89,7 +90,7 @@ function StudentsPage() {
         }
       />
 
-      <div className="glass mb-4 flex flex-col gap-3 p-3 lg:flex-row lg:items-center">
+      <motion.div {...reveal()} className="glass mb-4 flex flex-col gap-3 p-3 lg:flex-row lg:items-center">
         <SearchInput value={q} onChange={(v) => { setQ(v); setPage(1); }} placeholder="Search by name, Ad.No or phone…" className="lg:w-80" />
         <div className="flex flex-wrap gap-1.5">
           {["All", ...classes].map((c) => (
@@ -98,7 +99,7 @@ function StudentsPage() {
             </FilterChip>
           ))}
         </div>
-      </div>
+      </motion.div>
 
       <TableShell>
         {rows.length === 0 ? (
@@ -119,7 +120,7 @@ function StudentsPage() {
               {rows.map((s, i) => {
                 const b = balances.get(s.id);
                 return (
-                  <motion.tr key={s.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.02 }} className="cursor-pointer" onClick={() => setViewing(s)}>
+                  <motion.tr key={s.id} {...reveal(i)} className="cursor-pointer" onClick={() => setViewing(s)}>
                     <td>
                       <div className="flex items-center gap-3">
                         <Avatar name={s.name} size={32} />

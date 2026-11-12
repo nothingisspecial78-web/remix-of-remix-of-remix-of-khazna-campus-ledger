@@ -4,16 +4,12 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { formatINR, initials } from "@/lib/khazna/format";
 import type { TxType } from "@/lib/khazna/types";
 import { cn } from "@/lib/utils";
+import { reveal } from "./motion";
 
-export function GlassCard({ className, children, ...rest }: HTMLMotionProps<"div">) {
+export function GlassCard({ className, children, transition, ...rest }: HTMLMotionProps<"div">) {
+  const r = reveal();
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      className={cn("glass", className)}
-      {...rest}
-    >
+    <motion.div {...r} transition={{ ...r.transition, ...transition }} className={cn("glass", className)} {...rest}>
       {children}
     </motion.div>
   );
@@ -246,9 +242,9 @@ export function FilterChip({ active, onClick, children }: { active: boolean; onC
 
 export function TableShell({ children, className }: { children: ReactNode; className?: string | undefined }) {
   return (
-    <div className={cn("glass overflow-hidden", className)}>
+    <motion.div {...reveal()} className={cn("glass overflow-hidden", className)}>
       <div className="overflow-x-auto">{children}</div>
-    </div>
+    </motion.div>
   );
 }
 

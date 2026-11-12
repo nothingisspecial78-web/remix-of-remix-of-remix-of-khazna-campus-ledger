@@ -11,6 +11,7 @@ import { formatCompactINR } from "@/lib/khazna/format";
 import { totals } from "@/lib/khazna/ledger";
 import { useKhazna } from "@/lib/khazna/store";
 import type { Sector } from "@/lib/khazna/types";
+import { reveal } from "@/components/khazna/motion";
 
 export const Route = createFileRoute("/admin/sectors")({
   head: () => ({
@@ -54,7 +55,7 @@ function SectorsPage() {
           const Icon = SECTOR_ICON[s.slug];
           const mgrs = managers.filter((m) => m.sectors.includes(s.slug));
           return (
-            <motion.div key={s.slug} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="glass overflow-hidden" style={tileVar(s.color)}>
+            <motion.div key={s.slug} {...reveal(i)} className="glass overflow-hidden" style={tileVar(s.color)}>
               <div className="tile-glossy rounded-none border-0 border-b p-5">
                 <div className="relative flex items-start justify-between">
                   <span className="tile-icon size-12">

@@ -11,6 +11,7 @@ import { timeAgo } from "@/lib/khazna/format";
 import { useKhazna } from "@/lib/khazna/store";
 import type { Manager, SectorSlug } from "@/lib/khazna/types";
 import { cn } from "@/lib/utils";
+import { reveal } from "@/components/khazna/motion";
 
 export const Route = createFileRoute("/admin/admins")({
   head: () => ({
@@ -45,7 +46,7 @@ function AdminsPage() {
         }
       />
 
-      <div className="glass mb-6 flex items-center gap-4 p-4">
+      <motion.div {...reveal()} className="glass mb-6 flex items-center gap-4 p-4">
         <div className="grid size-11 place-items-center rounded-xl bg-gradient-primary text-primary-foreground shadow-glow">
           <ShieldCheck className="size-5" />
         </div>
@@ -54,11 +55,11 @@ function AdminsPage() {
           <div className="text-xs text-muted-foreground">Full access to every sector, student and audit record. Cannot be reassigned from here.</div>
         </div>
         <Chip tone="primary">Owner</Chip>
-      </div>
+      </motion.div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {managers.map((m, i) => (
-          <motion.div key={m.id} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="glass flex flex-col p-5">
+          <motion.div key={m.id} {...reveal(i)} className="glass flex flex-col p-5">
             <div className="flex items-start gap-3">
               <div className="relative">
                 <Avatar name={m.name} size={46} />

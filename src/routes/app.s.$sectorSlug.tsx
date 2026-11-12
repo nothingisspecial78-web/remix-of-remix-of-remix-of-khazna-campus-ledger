@@ -12,6 +12,7 @@ import { formatDate, TODAY } from "@/lib/khazna/format";
 import { totals, withRunningBalance } from "@/lib/khazna/ledger";
 import { useKhazna } from "@/lib/khazna/store";
 import { cn } from "@/lib/utils";
+import { reveal } from "@/components/khazna/motion";
 
 export const Route = createFileRoute("/app/s/$sectorSlug")({
   beforeLoad: ({ params }) => {
@@ -102,7 +103,7 @@ function StudentSectorLedger() {
             </thead>
             <tbody>
               {rows.map((r) => (
-                <tr key={r.id} className={cn(r.voided && "opacity-55")}>
+                <motion.tr {...reveal(0, 0, r.voided ? 0.55 : 1)} key={r.id}>
                   <td className="num text-muted-foreground">{formatDate(r.date)}</td>
                   <td className="font-mono text-xs text-muted-foreground">{r.receiptNo}</td>
                   <td>
@@ -114,7 +115,7 @@ function StudentSectorLedger() {
                   <td className="text-right font-semibold">
                     {r.voided ? <Chip>Void</Chip> : <Amount value={r.running} />}
                   </td>
-                </tr>
+                </motion.tr>
               ))}
             </tbody>
           </table>

@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { createFileRoute } from "@tanstack/react-router";
 import { Download, Lock, ScrollText } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -9,6 +10,7 @@ import { downloadCSV } from "@/lib/khazna/download";
 import { formatDate, formatTime, TODAY } from "@/lib/khazna/format";
 import { useKhazna } from "@/lib/khazna/store";
 import type { AuditAction, Role } from "@/lib/khazna/types";
+import { reveal } from "@/components/khazna/motion";
 
 export const Route = createFileRoute("/admin/audit")({
   head: () => ({
@@ -69,7 +71,7 @@ function AuditPage() {
         }
       />
 
-      <div className="glass mb-4 grid gap-3 p-3 md:grid-cols-2 xl:grid-cols-[1fr_auto_auto_auto]">
+      <motion.div {...reveal()} className="glass mb-4 grid gap-3 p-3 md:grid-cols-2 xl:grid-cols-[1fr_auto_auto_auto]">
         <SearchInput value={q} onChange={(v) => { setQ(v); setPage(1); }} placeholder="Search actor, target or details…" />
         <select className="k-input xl:w-48" value={action} onChange={(e) => { setAction(e.target.value as AuditAction | "all"); setPage(1); }}>
           <option value="all">All actions</option>
@@ -93,7 +95,7 @@ function AuditPage() {
             </option>
           ))}
         </select>
-      </div>
+      </motion.div>
 
       <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
         <Lock className="size-3.5 text-credit" /> Append-only · tamper-evident · {audit.length} records
@@ -119,7 +121,7 @@ function AuditPage() {
               {rows.map((a) => {
                 const Icon = AUDIT_ICON[a.action];
                 return (
-                  <tr key={a.id}>
+                  <motion.tr {...reveal()} key={a.id}>
                     <td>
                       <div className="text-foreground num">{formatDate(a.at)}</div>
                       <div className="text-xs text-subtle num">{formatTime(a.at)}</div>
@@ -137,7 +139,7 @@ function AuditPage() {
                     <td className="max-w-xs truncate text-muted-foreground">{a.details}</td>
                     <td className="text-muted-foreground">{sectors.find((s) => s.slug === a.sector)?.name ?? "—"}</td>
                     <td className="font-mono text-xs text-subtle">{a.ip}</td>
-                  </tr>
+                  </motion.tr>
                 );
               })}
             </tbody>
