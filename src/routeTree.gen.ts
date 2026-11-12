@@ -10,33 +10,239 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AppRouteImport } from './routes/app'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminAdminsRouteImport } from './routes/admin.admins'
+import { Route as AdminAuditRouteImport } from './routes/admin.audit'
+import { Route as AdminSectorsRouteImport } from './routes/admin.sectors'
+import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as MSectorSlugRouteImport } from './routes/m.$sectorSlug'
+import { Route as AdminStudentsIndexRouteImport } from './routes/admin.students.index'
+import { Route as AdminStudentsImportRouteImport } from './routes/admin.students.import'
+import { Route as AppSSectorSlugRouteImport } from './routes/app.s.$sectorSlug'
+import { Route as MSectorSlugIndexRouteImport } from './routes/m.$sectorSlug.index'
+import { Route as MSectorSlugBatchesRouteImport } from './routes/m.$sectorSlug.batches'
+import { Route as MSectorSlugBulkRouteImport } from './routes/m.$sectorSlug.bulk'
+import { Route as MSectorSlugLedgerRouteImport } from './routes/m.$sectorSlug.ledger'
+import { Route as MSectorSlugReportsRouteImport } from './routes/m.$sectorSlug.reports'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAdminsRoute = AdminAdminsRouteImport.update({
+  id: '/admins',
+  path: '/admins',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAuditRoute = AdminAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSectorsRoute = AdminSectorsRouteImport.update({
+  id: '/sectors',
+  path: '/sectors',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const MSectorSlugRoute = MSectorSlugRouteImport.update({
+  id: '/m/$sectorSlug',
+  path: '/m/$sectorSlug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminStudentsIndexRoute = AdminStudentsIndexRouteImport.update({
+  id: '/students/',
+  path: '/students/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminStudentsImportRoute = AdminStudentsImportRouteImport.update({
+  id: '/students/import',
+  path: '/students/import',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AppSSectorSlugRoute = AppSSectorSlugRouteImport.update({
+  id: '/s/$sectorSlug',
+  path: '/s/$sectorSlug',
+  getParentRoute: () => AppRoute,
+} as any)
+const MSectorSlugIndexRoute = MSectorSlugIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => MSectorSlugRoute,
+} as any)
+const MSectorSlugBatchesRoute = MSectorSlugBatchesRouteImport.update({
+  id: '/batches',
+  path: '/batches',
+  getParentRoute: () => MSectorSlugRoute,
+} as any)
+const MSectorSlugBulkRoute = MSectorSlugBulkRouteImport.update({
+  id: '/bulk',
+  path: '/bulk',
+  getParentRoute: () => MSectorSlugRoute,
+} as any)
+const MSectorSlugLedgerRoute = MSectorSlugLedgerRouteImport.update({
+  id: '/ledger',
+  path: '/ledger',
+  getParentRoute: () => MSectorSlugRoute,
+} as any)
+const MSectorSlugReportsRoute = MSectorSlugReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => MSectorSlugRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
+  '/app': typeof AppRouteWithChildren
+  '/login': typeof LoginRoute
+  '/admin/admins': typeof AdminAdminsRoute
+  '/admin/audit': typeof AdminAuditRoute
+  '/admin/sectors': typeof AdminSectorsRoute
+  '/m/$sectorSlug': typeof MSectorSlugRouteWithChildren
+  '/admin/': typeof AdminIndexRoute
+  '/app/': typeof AppIndexRoute
+  '/admin/students/import': typeof AdminStudentsImportRoute
+  '/app/s/$sectorSlug': typeof AppSSectorSlugRoute
+  '/m/$sectorSlug/batches': typeof MSectorSlugBatchesRoute
+  '/m/$sectorSlug/bulk': typeof MSectorSlugBulkRoute
+  '/m/$sectorSlug/ledger': typeof MSectorSlugLedgerRoute
+  '/m/$sectorSlug/reports': typeof MSectorSlugReportsRoute
+  '/admin/students/': typeof AdminStudentsIndexRoute
+  '/m/$sectorSlug/': typeof MSectorSlugIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/admin/admins': typeof AdminAdminsRoute
+  '/admin/audit': typeof AdminAuditRoute
+  '/admin/sectors': typeof AdminSectorsRoute
+  '/admin': typeof AdminIndexRoute
+  '/app': typeof AppIndexRoute
+  '/admin/students/import': typeof AdminStudentsImportRoute
+  '/app/s/$sectorSlug': typeof AppSSectorSlugRoute
+  '/m/$sectorSlug/batches': typeof MSectorSlugBatchesRoute
+  '/m/$sectorSlug/bulk': typeof MSectorSlugBulkRoute
+  '/m/$sectorSlug/ledger': typeof MSectorSlugLedgerRoute
+  '/m/$sectorSlug/reports': typeof MSectorSlugReportsRoute
+  '/admin/students': typeof AdminStudentsIndexRoute
+  '/m/$sectorSlug': typeof MSectorSlugIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
+  '/app': typeof AppRouteWithChildren
+  '/login': typeof LoginRoute
+  '/admin/admins': typeof AdminAdminsRoute
+  '/admin/audit': typeof AdminAuditRoute
+  '/admin/sectors': typeof AdminSectorsRoute
+  '/m/$sectorSlug': typeof MSectorSlugRouteWithChildren
+  '/admin/': typeof AdminIndexRoute
+  '/app/': typeof AppIndexRoute
+  '/admin/students/import': typeof AdminStudentsImportRoute
+  '/app/s/$sectorSlug': typeof AppSSectorSlugRoute
+  '/m/$sectorSlug/batches': typeof MSectorSlugBatchesRoute
+  '/m/$sectorSlug/bulk': typeof MSectorSlugBulkRoute
+  '/m/$sectorSlug/ledger': typeof MSectorSlugLedgerRoute
+  '/m/$sectorSlug/reports': typeof MSectorSlugReportsRoute
+  '/admin/students/': typeof AdminStudentsIndexRoute
+  '/m/$sectorSlug/': typeof MSectorSlugIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/app'
+    | '/login'
+    | '/admin/admins'
+    | '/admin/audit'
+    | '/admin/sectors'
+    | '/m/$sectorSlug'
+    | '/admin/'
+    | '/app/'
+    | '/admin/students/import'
+    | '/app/s/$sectorSlug'
+    | '/m/$sectorSlug/batches'
+    | '/m/$sectorSlug/bulk'
+    | '/m/$sectorSlug/ledger'
+    | '/m/$sectorSlug/reports'
+    | '/admin/students/'
+    | '/m/$sectorSlug/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/login'
+    | '/admin/admins'
+    | '/admin/audit'
+    | '/admin/sectors'
+    | '/admin'
+    | '/app'
+    | '/admin/students/import'
+    | '/app/s/$sectorSlug'
+    | '/m/$sectorSlug/batches'
+    | '/m/$sectorSlug/bulk'
+    | '/m/$sectorSlug/ledger'
+    | '/m/$sectorSlug/reports'
+    | '/admin/students'
+    | '/m/$sectorSlug'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/app'
+    | '/login'
+    | '/admin/admins'
+    | '/admin/audit'
+    | '/admin/sectors'
+    | '/m/$sectorSlug'
+    | '/admin/'
+    | '/app/'
+    | '/admin/students/import'
+    | '/app/s/$sectorSlug'
+    | '/m/$sectorSlug/batches'
+    | '/m/$sectorSlug/bulk'
+    | '/m/$sectorSlug/ledger'
+    | '/m/$sectorSlug/reports'
+    | '/admin/students/'
+    | '/m/$sectorSlug/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRouteWithChildren
+  AppRoute: typeof AppRouteWithChildren
+  LoginRoute: typeof LoginRoute
+  MSectorSlugRoute: typeof MSectorSlugRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +254,186 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/admins': {
+      id: '/admin/admins'
+      path: '/admins'
+      fullPath: '/admin/admins'
+      preLoaderRoute: typeof AdminAdminsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/audit': {
+      id: '/admin/audit'
+      path: '/audit'
+      fullPath: '/admin/audit'
+      preLoaderRoute: typeof AdminAuditRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/sectors': {
+      id: '/admin/sectors'
+      path: '/sectors'
+      fullPath: '/admin/sectors'
+      preLoaderRoute: typeof AdminSectorsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/app/': {
+      id: '/app/'
+      path: '/'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/m/$sectorSlug': {
+      id: '/m/$sectorSlug'
+      path: '/m/$sectorSlug'
+      fullPath: '/m/$sectorSlug'
+      preLoaderRoute: typeof MSectorSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/students/': {
+      id: '/admin/students/'
+      path: '/students'
+      fullPath: '/admin/students/'
+      preLoaderRoute: typeof AdminStudentsIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/students/import': {
+      id: '/admin/students/import'
+      path: '/students/import'
+      fullPath: '/admin/students/import'
+      preLoaderRoute: typeof AdminStudentsImportRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/app/s/$sectorSlug': {
+      id: '/app/s/$sectorSlug'
+      path: '/s/$sectorSlug'
+      fullPath: '/app/s/$sectorSlug'
+      preLoaderRoute: typeof AppSSectorSlugRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/m/$sectorSlug/': {
+      id: '/m/$sectorSlug/'
+      path: '/'
+      fullPath: '/m/$sectorSlug/'
+      preLoaderRoute: typeof MSectorSlugIndexRouteImport
+      parentRoute: typeof MSectorSlugRoute
+    }
+    '/m/$sectorSlug/batches': {
+      id: '/m/$sectorSlug/batches'
+      path: '/batches'
+      fullPath: '/m/$sectorSlug/batches'
+      preLoaderRoute: typeof MSectorSlugBatchesRouteImport
+      parentRoute: typeof MSectorSlugRoute
+    }
+    '/m/$sectorSlug/bulk': {
+      id: '/m/$sectorSlug/bulk'
+      path: '/bulk'
+      fullPath: '/m/$sectorSlug/bulk'
+      preLoaderRoute: typeof MSectorSlugBulkRouteImport
+      parentRoute: typeof MSectorSlugRoute
+    }
+    '/m/$sectorSlug/ledger': {
+      id: '/m/$sectorSlug/ledger'
+      path: '/ledger'
+      fullPath: '/m/$sectorSlug/ledger'
+      preLoaderRoute: typeof MSectorSlugLedgerRouteImport
+      parentRoute: typeof MSectorSlugRoute
+    }
+    '/m/$sectorSlug/reports': {
+      id: '/m/$sectorSlug/reports'
+      path: '/reports'
+      fullPath: '/m/$sectorSlug/reports'
+      preLoaderRoute: typeof MSectorSlugReportsRouteImport
+      parentRoute: typeof MSectorSlugRoute
+    }
   }
 }
 
+interface AdminRouteChildren {
+  AdminAdminsRoute: typeof AdminAdminsRoute
+  AdminAuditRoute: typeof AdminAuditRoute
+  AdminSectorsRoute: typeof AdminSectorsRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+  AdminStudentsImportRoute: typeof AdminStudentsImportRoute
+  AdminStudentsIndexRoute: typeof AdminStudentsIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminAdminsRoute: AdminAdminsRoute,
+  AdminAuditRoute: AdminAuditRoute,
+  AdminSectorsRoute: AdminSectorsRoute,
+  AdminIndexRoute: AdminIndexRoute,
+  AdminStudentsImportRoute: AdminStudentsImportRoute,
+  AdminStudentsIndexRoute: AdminStudentsIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
+interface AppRouteChildren {
+  AppIndexRoute: typeof AppIndexRoute
+  AppSSectorSlugRoute: typeof AppSSectorSlugRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppIndexRoute: AppIndexRoute,
+  AppSSectorSlugRoute: AppSSectorSlugRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
+interface MSectorSlugRouteChildren {
+  MSectorSlugBatchesRoute: typeof MSectorSlugBatchesRoute
+  MSectorSlugBulkRoute: typeof MSectorSlugBulkRoute
+  MSectorSlugLedgerRoute: typeof MSectorSlugLedgerRoute
+  MSectorSlugReportsRoute: typeof MSectorSlugReportsRoute
+  MSectorSlugIndexRoute: typeof MSectorSlugIndexRoute
+}
+
+const MSectorSlugRouteChildren: MSectorSlugRouteChildren = {
+  MSectorSlugBatchesRoute: MSectorSlugBatchesRoute,
+  MSectorSlugBulkRoute: MSectorSlugBulkRoute,
+  MSectorSlugLedgerRoute: MSectorSlugLedgerRoute,
+  MSectorSlugReportsRoute: MSectorSlugReportsRoute,
+  MSectorSlugIndexRoute: MSectorSlugIndexRoute,
+}
+
+const MSectorSlugRouteWithChildren = MSectorSlugRoute._addFileChildren(
+  MSectorSlugRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRouteWithChildren,
+  AppRoute: AppRouteWithChildren,
+  LoginRoute: LoginRoute,
+  MSectorSlugRoute: MSectorSlugRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
