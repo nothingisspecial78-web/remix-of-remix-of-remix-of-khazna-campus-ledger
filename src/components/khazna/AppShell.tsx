@@ -422,18 +422,18 @@ export function AppShell({ role, sectorSlug, children }: { role: Role; sectorSlu
         </div>
       </motion.header>
 
-      <div className="mx-auto flex max-w-[1440px] gap-6 px-3 pb-28 pt-4 sm:px-4 sm:pb-24 md:px-6 md:pt-6 lg:pb-20">
-        <motion.aside
-          initial={entering ? { opacity: 0, x: -24 } : false}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
-          className="no-print hidden w-60 shrink-0 lg:block"
-        >
-          <div className="glass sticky top-[6.25rem] p-3">
+      <div className="mx-auto flex max-w-[1440px] items-start gap-6 px-3 pb-28 pt-4 sm:px-4 sm:pb-24 md:px-6 md:pt-6 lg:pb-20">
+        <aside className="no-print sticky top-[5.75rem] z-30 hidden w-60 shrink-0 self-start lg:block">
+          <motion.div
+            initial={entering ? { opacity: 0, x: -24 } : false}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
+            className="glass max-h-[calc(100dvh-6.75rem)] overflow-y-auto p-3 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          >
             <ContextCard role={role} sectorSlug={slug} />
             <NavList role={role} sectorSlug={slug} />
-          </div>
-        </motion.aside>
+          </motion.div>
+        </aside>
         <main className="min-w-0 flex-1">
           <motion.div
             key={pathname}
