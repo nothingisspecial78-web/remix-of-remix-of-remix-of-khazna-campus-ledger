@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { createFileRoute } from "@tanstack/react-router";
-import { Ban, Download, Layers, Plus, ReceiptText } from "lucide-react";
+import { Ban, Download, Layers, Pencil, Plus, ReceiptText } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Btn } from "@/components/khazna/btn";
@@ -47,6 +47,7 @@ function LedgerPage() {
   const [to, setTo] = useState("");
   const [page, setPage] = useState(1);
   const [entryOpen, setEntryOpen] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<Tx | null>(null);
   const [voiding, setVoiding] = useState<Tx | null>(null);
 
   const byId = useMemo(() => new Map(students.map((s) => [s.id, s])), [students]);
@@ -187,12 +188,18 @@ function LedgerPage() {
                           <Chip tone="debit">Debit</Chip>
                         )}
                         {t.batchId && <Chip tone="info" icon={Layers}>{t.batchId}</Chip>}
+                        {t.updatedAt && <Chip tone="primary">Edited</Chip>}
                         <span className="text-muted-foreground num text-[11px]">{formatDate(t.date)}</span>
                       </div>
                       {!t.voided && (
-                        <Btn variant="ghost" size="sm" onClick={() => setVoiding(t)} className="h-7 px-2 text-xs text-debit hover:bg-debit/10">
-                          <Ban className="size-3" /> Void
-                        </Btn>
+                        <div className="flex items-center gap-1">
+                          <Btn variant="ghost" size="sm" onClick={() => setEditingEntry(t)} className="h-7 px-2 text-xs text-primary hover:bg-primary/10">
+                            <Pencil className="size-3" /> Edit
+                          </Btn>
+                          <Btn variant="ghost" size="sm" onClick={() => setVoiding(t)} className="h-7 px-2 text-xs text-debit hover:bg-debit/10">
+                            <Ban className="size-3" /> Void
+                          </Btn>
+                        </div>
                       )}
                     </div>
 
@@ -263,9 +270,14 @@ function LedgerPage() {
                         </td>
                         <td className="text-right">
                           {!t.voided && (
-                            <Btn variant="ghost" size="sm" onClick={() => setVoiding(t)}>
-                              <Ban /> Void
-                            </Btn>
+                            <div className="flex items-center justify-end gap-1">
+                              <Btn variant="ghost" size="sm" onClick={() => setEditingEntry(t)} title="Edit entry">
+                                <Pencil className="size-3.5" /> Edit
+                              </Btn>
+                              <Btn variant="ghost" size="sm" onClick={() => setVoiding(t)} title="Void entry" className="text-debit hover:bg-debit/10">
+                                <Ban className="size-3.5" /> Void
+                              </Btn>
+                            </div>
                           )}
                         </td>
                       </motion.tr>
@@ -279,7 +291,17 @@ function LedgerPage() {
         <Pager page={page} pages={pages} onPage={setPage} total={filtered.length} label="entries" />
       </TableShell>
 
-      <NewEntryDialog open={entryOpen} onOpenChange={setEntryOpen} sector={slug} />
+      <NewEntryDialog
+        open={entryOpen || !!editingEntry}
+        onOpenChange={(o) => {
+          if (!o) {
+            setEntryOpen(false);
+            setEditingEntry(null);
+          }
+        }}
+        sector={slug}
+        entry={editingEntry}
+      />
       <VoidDialog
         open={!!voiding}
         onOpenChange={(o) => !o && setVoiding(null)}

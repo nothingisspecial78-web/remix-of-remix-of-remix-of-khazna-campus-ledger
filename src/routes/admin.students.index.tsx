@@ -1,15 +1,17 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { Download, Phone, Plus, Upload, UserPlus, Users } from "lucide-react";
+import { Download, FileText, Pencil, Phone, Plus, Trash2, Upload, UserPlus, Users } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Btn } from "@/components/khazna/btn";
 import { KDrawer } from "@/components/khazna/overlays";
 import { Amount, Avatar, Chip, EmptyState, Field, FilterChip, PageHeader, Pager, SearchInput, TableShell } from "@/components/khazna/primitives";
 import { sectorIcon, tileVar } from "@/components/khazna/sector-meta";
+import { StudentFormDrawer } from "@/components/khazna/StudentFormDrawer";
 import { downloadCSV } from "@/lib/khazna/download";
 import { formatDate, formatINR, TODAY } from "@/lib/khazna/format";
 import { totals } from "@/lib/khazna/ledger";
+import { generateStudentStatementPdf } from "@/lib/khazna/pdf-report";
 import { useKhazna } from "@/lib/khazna/store";
 import type { Student } from "@/lib/khazna/types";
 import { reveal } from "@/components/khazna/motion";
@@ -34,11 +36,27 @@ function StudentsPage() {
   const students = useKhazna((s) => s.students);
   const txs = useKhazna((s) => s.transactions);
   const classes = useKhazna((s) => s.classes);
+  const deleteStudent = useKhazna((s) => s.deleteStudent);
+  const addStudent = useKhazna((s) => s.addStudent);
   const [q, setQ] = useState("");
   const [cls, setCls] = useState("All");
   const [page, setPage] = useState(1);
   const [adding, setAdding] = useState(false);
+  const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [viewing, setViewing] = useState<Student | null>(null);
+
+  const handleDelete = (s: Student) => {
+    if (confirm(`Are you sure you want to remove ${s.name} (${s.id})?`)) {
+      deleteStudent(s.id);
+      toast.success(`${s.name} removed`, {
+        action: {
+          label: "Undo",
+          onClick: () => addStudent(s),
+        },
+      });
+      if (viewing?.id === s.id) setViewing(null);
+    }
+  };
 
   const balances = useMemo(() => {
     const m = new Map<string, { balance: number; sectors: Set<string> }>();
@@ -144,6 +162,28 @@ function StudentsPage() {
                         {s.phone && <span className="font-mono text-[11px] num">{s.phone}</span>}
                       </div>
                     )}
+                    <div className="flex items-center justify-end gap-2 pt-1 border-t border-hairline/30">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingStudent(s);
+                        }}
+                        className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-primary hover:bg-primary/10 transition-colors"
+                      >
+                        <Pencil className="size-3" /> Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(s);
+                        }}
+                        className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-debit hover:bg-debit/10 transition-colors"
+                      >
+                        <Trash2 className="size-3" /> Delete
+                      </button>
+                    </div>
                   </motion.div>
                 );
               })}
@@ -160,6 +200,7 @@ function StudentsPage() {
                     <th>Phone</th>
                     <th>Sectors</th>
                     <th className="text-right">Combined balance</th>
+                    <th className="text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -171,7 +212,10 @@ function StudentsPage() {
                           <div className="flex items-center gap-3">
                             <Avatar name={s.name} size={32} />
                             <div>
-                              <div className="font-medium text-foreground">{s.name}</div>
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-medium text-foreground">{s.name}</span>
+                                {s.updatedAt && <Chip className="text-[9px] py-0 px-1">Edited</Chip>}
+                              </div>
                               <div className="text-xs text-muted-foreground">c/o {s.guardian}</div>
                             </div>
                           </div>
@@ -185,6 +229,34 @@ function StudentsPage() {
                         <td className="text-right font-medium">
                           <Amount value={b?.balance ?? 0} />
                         </td>
+                        <td className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Btn
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingStudent(s);
+                              }}
+                              title="Edit student"
+                              className="h-7 px-2 text-xs text-primary hover:bg-primary/10"
+                            >
+                              <Pencil className="size-3.5" /> Edit
+                            </Btn>
+                            <Btn
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete(s);
+                              }}
+                              title="Delete student"
+                              className="h-7 px-2 text-xs text-debit hover:bg-debit/10"
+                            >
+                              <Trash2 className="size-3.5" />
+                            </Btn>
+                          </div>
+                        </td>
                       </motion.tr>
                     );
                   })}
@@ -196,92 +268,114 @@ function StudentsPage() {
         <Pager page={page} pages={pages} onPage={setPage} total={filtered.length} label="students" />
       </TableShell>
 
-      <AddStudentDrawer open={adding} onOpenChange={setAdding} />
-      <StudentDrawer student={viewing} onClose={() => setViewing(null)} />
+      <StudentFormDrawer
+        open={adding || !!editingStudent}
+        onOpenChange={(o) => {
+          if (!o) {
+            setAdding(false);
+            setEditingStudent(null);
+          }
+        }}
+        student={editingStudent}
+      />
+      <StudentDrawer
+        student={viewing}
+        onClose={() => setViewing(null)}
+        onEdit={(s) => setEditingStudent(s)}
+        onDelete={(s) => handleDelete(s)}
+      />
     </div>
   );
 }
 
-function AddStudentDrawer({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
-  const students = useKhazna((s) => s.students);
-  const classes = useKhazna((s) => s.classes);
-  const addStudent = useKhazna((s) => s.addStudent);
-  const nextId = `S${String(Math.max(...students.map((s) => Number(s.id.slice(1)))) + 1).padStart(4, "0")}`;
-  const [form, setForm] = useState({ name: "", id: "", className: classes[0] ?? "", phone: "", guardian: "" });
-  const [touched, setTouched] = useState(false);
-  const id = form.id || nextId;
-  const errors = {
-    name: form.name.trim().length < 3 ? "Enter the student's full name" : "",
-    id: !/^S\d{4}$/.test(id) ? "Format: S followed by 4 digits" : students.some((s) => s.id === id) ? "This Ad.No already exists" : "",
-    phone: !/^\d{10}$/.test(form.phone) ? "10-digit mobile number" : "",
-  };
-  const valid = !errors.name && !errors.id && !errors.phone;
 
-  const save = () => {
-    setTouched(true);
-    if (!valid) return;
-    addStudent({ id, name: form.name.trim(), className: form.className, phone: form.phone, guardian: form.guardian || "—", joined: TODAY });
-    toast.success(`${form.name} added`, { description: `${id} · ${form.className}` });
-    setForm({ name: "", id: "", className: classes[0] ?? "", phone: "", guardian: "" });
-    setTouched(false);
-    onOpenChange(false);
+
+function StudentDrawer({
+  student,
+  onClose,
+  onEdit,
+  onDelete,
+}: {
+  student: Student | null;
+  onClose: () => void;
+  onEdit?: (s: Student) => void;
+  onDelete?: (s: Student) => void;
+}) {
+  const txs = useKhazna((s) => s.transactions);
+  const sectors = useKhazna((s) => s.sectors);
+  const college = useKhazna((s) => s.college);
+  const [downloading, setDownloading] = useState(false);
+
+  if (!student) return <KDrawer open={false} onOpenChange={onClose} title="" children={null} />;
+  const all = totals(txs, { studentId: student.id });
+  const recent = txs.filter((t) => t.studentId === student.id).slice(0, 6);
+
+  const handleDownloadPdf = async () => {
+    setDownloading(true);
+    try {
+      const studentTxs = txs.filter((t) => t.studentId === student.id);
+      const sectorMap = new Map(sectors.map((s) => [s.slug, s.name]));
+      const filename = await generateStudentStatementPdf({
+        collegeName: college.name,
+        student,
+        transactions: studentTxs,
+        sectorMap,
+      });
+      toast.success("Statement PDF downloaded", { description: filename });
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to generate statement PDF");
+    } finally {
+      setDownloading(false);
+    }
   };
 
   return (
     <KDrawer
-      open={open}
-      onOpenChange={onOpenChange}
-      title="Add student"
-      description="New students get an empty ledger in every sector."
+      open={!!student}
+      onOpenChange={(o) => !o && onClose()}
+      title={student.name}
+      description={`${student.id} · ${student.className} · joined ${formatDate(student.joined)}`}
       footer={
-        <>
-          <Btn variant="ghost" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Btn>
-          <Btn variant="primary" onClick={save}>
-            <UserPlus /> Add student
-          </Btn>
-        </>
+        <div className="flex w-full items-center justify-between gap-2 flex-wrap">
+          {onDelete && (
+            <Btn
+              variant="danger"
+              size="sm"
+              onClick={() => onDelete(student)}
+            >
+              <Trash2 className="size-3.5" /> Delete
+            </Btn>
+          )}
+          <div className="flex items-center gap-1.5 ml-auto">
+            <Btn
+              variant="glass"
+              size="sm"
+              onClick={handleDownloadPdf}
+              disabled={downloading}
+              title="Download official PDF statement"
+            >
+              <FileText className="size-3.5 text-primary" /> {downloading ? "Preparing…" : "Statement PDF"}
+            </Btn>
+            {onEdit && (
+              <Btn
+                variant="primary"
+                size="sm"
+                onClick={() => {
+                  onClose();
+                  onEdit(student);
+                }}
+              >
+                <Pencil className="size-3.5" /> Edit
+              </Btn>
+            )}
+            <Btn variant="ghost" size="sm" onClick={onClose}>
+              Close
+            </Btn>
+          </div>
+        </div>
       }
     >
-      <div className="space-y-4">
-        <Field label="Full name" required error={touched ? errors.name : ""}>
-          <input className="k-input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Muhammed Rayan" aria-invalid={touched && !!errors.name} />
-        </Field>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Ad.No" required error={touched ? errors.id : ""} hint="Auto-assigned">
-            <input className="k-input num" value={form.id} placeholder={nextId} onChange={(e) => setForm({ ...form, id: e.target.value.toUpperCase() })} />
-          </Field>
-          <Field label="Class" required>
-            <select className="k-input" value={form.className} onChange={(e) => setForm({ ...form, className: e.target.value })}>
-              {classes.map((c) => (
-                <option key={c}>{c}</option>
-              ))}
-            </select>
-          </Field>
-        </div>
-        <Field label="Mobile" required error={touched ? errors.phone : ""}>
-          <div className="relative">
-            <Phone className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-subtle" />
-            <input className="k-input num pl-9" inputMode="numeric" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, "").slice(0, 10) })} placeholder="98470 00000" />
-          </div>
-        </Field>
-        <Field label="Guardian name">
-          <input className="k-input" value={form.guardian} onChange={(e) => setForm({ ...form, guardian: e.target.value })} placeholder="e.g. Abdul Rahman" />
-        </Field>
-      </div>
-    </KDrawer>
-  );
-}
-
-function StudentDrawer({ student, onClose }: { student: Student | null; onClose: () => void }) {
-  const txs = useKhazna((s) => s.transactions);
-  const sectors = useKhazna((s) => s.sectors);
-  if (!student) return <KDrawer open={false} onOpenChange={onClose} title="" children={null} />;
-  const all = totals(txs, { studentId: student.id });
-  const recent = txs.filter((t) => t.studentId === student.id).slice(0, 6);
-  return (
-    <KDrawer open={!!student} onOpenChange={(o) => !o && onClose()} title={student.name} description={`${student.id} · ${student.className} · joined ${formatDate(student.joined)}`}>
       <div className="glass-inset p-4">
         <div className="text-xs text-muted-foreground">Combined balance</div>
         <div className="font-display text-3xl font-semibold">

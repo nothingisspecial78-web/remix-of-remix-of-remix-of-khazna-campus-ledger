@@ -233,7 +233,7 @@ function BulkPage() {
                 </div>
               </div>
 
-              <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+              <div className="grid gap-2.5 pb-36 sm:grid-cols-2 sm:pb-12 xl:grid-cols-3 2xl:grid-cols-4">
                 {visible.map((s, i) => {
                   const on = selected.has(s.id);
                   const bal = balances.get(s.id)?.balance ?? 0;
@@ -267,8 +267,8 @@ function BulkPage() {
               {visible.length === 0 && <div className="glass p-10 text-center text-sm text-muted-foreground">No students in this filter.</div>}
 
               {/* sticky counter bar */}
-              <div className="pointer-events-none fixed inset-x-0 bottom-4 z-30 flex justify-center px-3 lg:pl-72">
-                <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="glass-strong pointer-events-auto flex w-full max-w-2xl items-center gap-3 rounded-2xl p-2.5 pl-4">
+              <div className="pointer-events-none fixed inset-x-0 bottom-20 z-30 flex justify-center px-3 sm:bottom-4 lg:pl-72">
+                <motion.div initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="glass-strong pointer-events-auto flex w-full max-w-2xl items-center gap-3 rounded-2xl p-2.5 pl-4 shadow-xl">
                   <div className="flex -space-x-2">
                     {chosen.slice(0, 4).map((s) => (
                       <Avatar key={s.id} name={s.name} size={28} className="border-2 border-background" />

@@ -35,8 +35,11 @@ function SectorsPage() {
   const students = useKhazna((s) => s.students);
   const classes = useKhazna((s) => s.classes);
   const addClass = useKhazna((s) => s.addClass);
+  const editClass = useKhazna((s) => s.editClass);
   const removeClass = useKhazna((s) => s.removeClass);
   const [editing, setEditing] = useState<Sector | null>(null);
+  const [editingClass, setEditingClass] = useState<string | null>(null);
+  const [editClassName, setEditClassName] = useState("");
   const [newClass, setNewClass] = useState("");
   const [adding, setAdding] = useState(false);
 
@@ -156,28 +159,72 @@ function SectorsPage() {
         <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
           {classes.map((c) => {
             const n = classCounts.get(c) ?? 0;
+            const isEditingThis = editingClass === c;
             return (
               <div key={c} className="glass-inset group flex items-center justify-between p-3">
-                <div>
-                  <div className="text-sm font-medium text-foreground">{c}</div>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground num">
-                    <Users className="size-3" /> {n} students
+                {isEditingThis ? (
+                  <form
+                    className="flex items-center gap-1.5 flex-1 mr-2"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      if (editClassName.trim() && editClassName.trim() !== c) {
+                        editClass(c, editClassName.trim());
+                        toast.success(`Renamed to ${editClassName.trim()}`);
+                      }
+                      setEditingClass(null);
+                    }}
+                  >
+                    <input
+                      className="k-input h-7 px-2 text-xs"
+                      value={editClassName}
+                      onChange={(e) => setEditClassName(e.target.value)}
+                      autoFocus
+                    />
+                    <button type="submit" className="rounded p-1 text-primary hover:bg-primary/10">
+                      <Check className="size-3.5" />
+                    </button>
+                    <button type="button" onClick={() => setEditingClass(null)} className="rounded p-1 text-subtle hover:bg-accent">
+                      <X className="size-3.5" />
+                    </button>
+                  </form>
+                ) : (
+                  <div>
+                    <div className="text-sm font-medium text-foreground">{c}</div>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground num">
+                      <Users className="size-3" /> {n} students
+                    </div>
                   </div>
-                </div>
-                <button
-                  className="rounded-md p-1 text-subtle opacity-0 transition-opacity hover:text-debit group-hover:opacity-100"
-                  aria-label={`Remove ${c}`}
-                  onClick={() => {
-                    if (n > 0) {
-                      toast.error(`Move ${n} students out of ${c} first`);
-                      return;
-                    }
-                    removeClass(c);
-                    toast(`Class ${c} removed`);
-                  }}
-                >
-                  <X className="size-4" />
-                </button>
+                )}
+                {!isEditingThis && (
+                  <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                    <button
+                      className="rounded-md p-1 text-subtle hover:text-primary hover:bg-primary/10"
+                      aria-label={`Edit ${c}`}
+                      onClick={() => {
+                        setEditingClass(c);
+                        setEditClassName(c);
+                      }}
+                      title="Edit class name"
+                    >
+                      <Pencil className="size-3.5" />
+                    </button>
+                    <button
+                      className="rounded-md p-1 text-subtle hover:text-debit hover:bg-debit/10"
+                      aria-label={`Remove ${c}`}
+                      onClick={() => {
+                        if (n > 0) {
+                          toast.error(`Move ${n} students out of ${c} first`);
+                          return;
+                        }
+                        removeClass(c);
+                        toast(`Class ${c} removed`);
+                      }}
+                      title="Remove class"
+                    >
+                      <X className="size-4" />
+                    </button>
+                  </div>
+                )}
               </div>
             );
           })}

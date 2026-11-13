@@ -23,6 +23,9 @@ export interface Student {
   phone: string;
   guardian: string;
   joined: string; // YYYY-MM-DD
+  status?: "active" | "inactive" | undefined;
+  updatedAt?: string | undefined;
+  updatedBy?: string | undefined;
 }
 
 export interface VoidInfo {
@@ -44,6 +47,8 @@ export interface Tx {
   batchId?: string | undefined;
   createdBy: string;
   voided?: VoidInfo | undefined;
+  updatedAt?: string | undefined;
+  updatedBy?: string | undefined;
 }
 
 export interface Batch {
@@ -64,16 +69,22 @@ export interface Batch {
 export type AuditAction =
   | "LOGIN"
   | "CREATE_ENTRY"
+  | "EDIT_ENTRY"
   | "VOID_ENTRY"
+  | "DELETE_ENTRY"
   | "BULK_POST"
   | "VOID_BATCH"
   | "ADD_STUDENT"
+  | "EDIT_STUDENT"
+  | "DELETE_STUDENT"
   | "IMPORT_STUDENTS"
   | "ASSIGN_SECTOR"
   | "INVITE_ADMIN"
   | "UPDATE_SECTOR"
   | "UPDATE_PROFILE"
   | "ADD_SECTOR"
+  | "EDIT_CLASS"
+  | "DELETE_CLASS"
   | "SIGN_UP"
   | "EXPORT";
 

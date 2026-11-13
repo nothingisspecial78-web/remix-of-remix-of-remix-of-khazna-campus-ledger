@@ -1,10 +1,10 @@
-import { ArrowDownLeft, ArrowUpRight, Check, IndianRupee, Search } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, Check, IndianRupee, Pencil, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { TODAY, formatINR } from "@/lib/khazna/format";
 import { totals } from "@/lib/khazna/ledger";
 import { useKhazna } from "@/lib/khazna/store";
-import type { SectorSlug, TxType } from "@/lib/khazna/types";
+import type { SectorSlug, Tx, TxType } from "@/lib/khazna/types";
 import { cn } from "@/lib/utils";
 import { Btn } from "./btn";
 import { KDialog } from "./overlays";
@@ -17,11 +17,26 @@ export interface EntryPreset {
   title?: string | undefined;
 }
 
-export function NewEntryDialog({ open, onOpenChange, sector, preset }: { open: boolean; onOpenChange: (o: boolean) => void; sector: SectorSlug; preset?: EntryPreset | undefined }) {
+export function NewEntryDialog({
+  open,
+  onOpenChange,
+  sector,
+  preset,
+  entry,
+}: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  sector: SectorSlug;
+  preset?: EntryPreset | undefined;
+  entry?: Tx | null | undefined;
+}) {
   const students = useKhazna((s) => s.students);
   const txs = useKhazna((s) => s.transactions);
   const sec = useKhazna((s) => s.sectors.find((x) => x.slug === sector)!);
   const addEntry = useKhazna((s) => s.addEntry);
+  const editEntry = useKhazna((s) => s.editEntry);
+
+  const isEdit = !!entry;
 
   const nextReceipt = useMemo(() => {
     const nums = txs.filter((t) => t.sector === sector && t.receiptNo.startsWith(sec.receiptPrefix)).map((t) => Number(t.receiptNo.slice(sec.receiptPrefix.length)) || 0);
@@ -37,7 +52,25 @@ export function NewEntryDialog({ open, onOpenChange, sector, preset }: { open: b
   if (open !== lastOpen) {
     setLastOpen(open);
     if (open) {
-      setForm({ ...blank, studentId: preset?.studentId ?? "", type: preset?.type ?? "credit", amount: preset?.amount ? String(preset.amount) : "", title: preset?.title ?? "" });
+      if (entry) {
+        setForm({
+          studentId: entry.studentId,
+          type: entry.type,
+          title: entry.title,
+          reason: entry.reason ?? "",
+          amount: String(entry.amount),
+          date: entry.date,
+          receipt: entry.receiptNo,
+        });
+      } else {
+        setForm({
+          ...blank,
+          studentId: preset?.studentId ?? "",
+          type: preset?.type ?? "credit",
+          amount: preset?.amount ? String(preset.amount) : "",
+          title: preset?.title ?? "",
+        });
+      }
       setQ("");
       setTouched(false);
     }
@@ -47,7 +80,7 @@ export function NewEntryDialog({ open, onOpenChange, sector, preset }: { open: b
   const before = student ? totals(txs, { studentId: student.id, sector }).balance : 0;
   const amt = Number(form.amount) || 0;
   const after = before + (form.type === "credit" ? amt : -amt);
-  const receipt = form.receipt || nextReceipt;
+  const receipt = form.receipt || (isEdit ? entry!.receiptNo : nextReceipt);
 
   const matches = useMemo(() => {
     const t = q.trim().toLowerCase();
@@ -60,7 +93,7 @@ export function NewEntryDialog({ open, onOpenChange, sector, preset }: { open: b
     title: form.title.trim().length < 3 ? "Title is required" : "",
     reason: form.type === "debit" && form.reason.trim().length < 5 ? "A reason is mandatory for debits" : "",
     amount: amt <= 0 ? "Enter an amount above ₹0" : amt > 200000 ? "Single entries are capped at ₹2,00,000" : "",
-    receipt: txs.some((t) => t.receiptNo === receipt && t.sector === sector) ? "This receipt number is already used" : "",
+    receipt: txs.some((t) => t.receiptNo === receipt && t.sector === sector && (!isEdit || t.id !== entry?.id)) ? "This receipt number is already used" : "",
   };
   const valid = Object.values(errors).every((e) => !e);
   const titles = form.type === "credit" ? sec.creditTitles : sec.debitTitles;
@@ -68,8 +101,32 @@ export function NewEntryDialog({ open, onOpenChange, sector, preset }: { open: b
   const save = () => {
     setTouched(true);
     if (!valid || !student) return;
-    addEntry({ sector, studentId: student.id, type: form.type, title: form.title.trim(), reason: form.type === "debit" ? form.reason.trim() : undefined, amount: amt, date: form.date, receiptNo: receipt });
-    toast.success(`${form.type === "credit" ? "Credit" : "Debit"} of ${formatINR(amt)} posted`, { description: `${student.name} · ${receipt}` });
+
+    if (isEdit && entry) {
+      editEntry(entry.id, {
+        sector,
+        studentId: student.id,
+        type: form.type,
+        title: form.title.trim(),
+        reason: form.type === "debit" ? form.reason.trim() : undefined,
+        amount: amt,
+        date: form.date,
+        receiptNo: receipt,
+      });
+      toast.success("Ledger entry updated", { description: `${student.name} · ${receipt}` });
+    } else {
+      addEntry({
+        sector,
+        studentId: student.id,
+        type: form.type,
+        title: form.title.trim(),
+        reason: form.type === "debit" ? form.reason.trim() : undefined,
+        amount: amt,
+        date: form.date,
+        receiptNo: receipt,
+      });
+      toast.success(`${form.type === "credit" ? "Credit" : "Debit"} of ${formatINR(amt)} posted`, { description: `${student.name} · ${receipt}` });
+    }
     onOpenChange(false);
   };
 
@@ -78,15 +135,20 @@ export function NewEntryDialog({ open, onOpenChange, sector, preset }: { open: b
       open={open}
       onOpenChange={onOpenChange}
       className="max-w-xl"
-      title="New ledger entry"
-      description={`${sec.name} · posted entries can only be voided, never edited.`}
+      title={
+        <div className="flex items-center gap-2">
+          {isEdit ? <Pencil className="size-5 text-primary" /> : null}
+          <span>{isEdit ? "Edit ledger entry" : "New ledger entry"}</span>
+        </div>
+      }
+      description={`${sec.name} · ${isEdit ? "Update entry values. Audit logs and balances update in real-time." : "Post a new entry to student statement."}`}
       footer={
         <>
           <Btn variant="ghost" onClick={() => onOpenChange(false)}>
             Cancel
           </Btn>
           <Btn variant="primary" onClick={save}>
-            <Check /> Post entry
+            <Check /> {isEdit ? "Save changes" : "Post entry"}
           </Btn>
         </>
       }

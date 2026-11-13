@@ -229,12 +229,17 @@ interface KhaznaState extends OrgStatePayload {
   postBatch: (input: BatchInput) => Batch;
   voidBatch: (id: string, reason: string) => void;
   addStudent: (s: Student) => void;
+  editStudent: (id: string, patch: Partial<Student>) => void;
+  deleteStudent: (id: string) => void;
   importStudents: (list: Student[]) => void;
   assignSectors: (managerId: string, sectors: SectorSlug[]) => void;
   inviteManager: (m: Omit<Manager, "id" | "status" | "lastActive">) => void;
   updateSector: (slug: SectorSlug, patch: Partial<Pick<Sector, "description" | "target" | "receiptPrefix">>) => void;
   addClass: (c: string) => void;
+  editClass: (oldName: string, newName: string) => void;
   removeClass: (c: string) => void;
+  editEntry: (id: string, patch: Partial<NewEntryInput>) => void;
+  deleteEntry: (id: string) => void;
   updatePhone: (studentId: string, phone: string) => void;
   markRead: (id: string) => void;
   markAllRead: () => void;
@@ -458,6 +463,82 @@ export const useKhazna = create<KhaznaState>((set, get) => {
       persist({ students: nextStudents });
     },
 
+    editStudent: (id, patch) => {
+      const s = get().students.find((x) => x.id === id);
+      if (!s) return;
+      const updated: Student = {
+        ...s,
+        ...patch,
+        updatedAt: nowIso(),
+        updatedBy: get().college.adminName,
+      };
+      const nextStudents = get().students.map((x) => (x.id === id ? updated : x));
+      set({ students: nextStudents });
+      get().log({
+        actor: get().college.adminName,
+        role: "admin",
+        action: "EDIT_STUDENT",
+        target: `${updated.id} · ${updated.name}`,
+        details: `Updated details: ${Object.keys(patch).join(", ")}`,
+      });
+      persist({ students: nextStudents });
+    },
+
+    deleteStudent: (id) => {
+      const s = get().students.find((x) => x.id === id);
+      if (!s) return;
+      const nextStudents = get().students.filter((x) => x.id !== id);
+      set({ students: nextStudents });
+      get().log({
+        actor: get().college.adminName,
+        role: "admin",
+        action: "DELETE_STUDENT",
+        target: `${s.id} · ${s.name}`,
+        details: `Removed student from ${s.className}`,
+      });
+      persist({ students: nextStudents });
+    },
+
+    editEntry: (id, patch) => {
+      const tx = get().transactions.find((t) => t.id === id);
+      if (!tx) return;
+      const actor = managerNameIn(get(), patch.sector ?? tx.sector);
+      const updated: Tx = {
+        ...tx,
+        ...patch,
+        updatedAt: nowIso(),
+        updatedBy: actor,
+      };
+      const nextTxs = get().transactions.map((t) => (t.id === id ? updated : t));
+      set({ transactions: nextTxs });
+      get().log({
+        actor,
+        role: "manager",
+        action: "EDIT_ENTRY",
+        target: updated.receiptNo,
+        details: `Updated entry: ${updated.title} · ${updated.type} ₹${updated.amount.toLocaleString("en-IN")}`,
+        sector: updated.sector,
+      });
+      persist({ transactions: nextTxs });
+    },
+
+    deleteEntry: (id) => {
+      const tx = get().transactions.find((t) => t.id === id);
+      if (!tx) return;
+      const actor = managerNameIn(get(), tx.sector);
+      const nextTxs = get().transactions.filter((t) => t.id !== id);
+      set({ transactions: nextTxs });
+      get().log({
+        actor,
+        role: "manager",
+        action: "DELETE_ENTRY",
+        target: tx.receiptNo,
+        details: `Deleted entry: ${tx.title} · ₹${tx.amount.toLocaleString("en-IN")}`,
+        sector: tx.sector,
+      });
+      persist({ transactions: nextTxs });
+    },
+
     importStudents: (list) => {
       const nextStudents = [...get().students, ...list];
       const nextClasses = [...get().classes, ...[...new Set(list.map((s) => s.className))].filter((c) => !get().classes.includes(c))];
@@ -495,6 +576,21 @@ export const useKhazna = create<KhaznaState>((set, get) => {
       const nextClasses = [...get().classes, c];
       set({ classes: nextClasses });
       persist({ classes: nextClasses });
+    },
+
+    editClass: (oldName, newName) => {
+      if (!newName.trim() || oldName === newName) return;
+      const nextClasses = get().classes.map((c) => (c === oldName ? newName.trim() : c));
+      const nextStudents = get().students.map((s) => (s.className === oldName ? { ...s, className: newName.trim() } : s));
+      set({ classes: nextClasses, students: nextStudents });
+      get().log({
+        actor: get().college.adminName,
+        role: "admin",
+        action: "EDIT_CLASS",
+        target: `${oldName} → ${newName}`,
+        details: `Renamed class and updated students`,
+      });
+      persist({ classes: nextClasses, students: nextStudents });
     },
 
     removeClass: (c) => {

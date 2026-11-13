@@ -2,6 +2,8 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import {
+  ArrowDownLeft,
+  ArrowUpRight,
   Bell,
   Check,
   ChevronDown,
@@ -17,6 +19,7 @@ import {
   ShieldCheck,
   UserCog,
   Users,
+  UserPlus,
   UserRound,
   BarChart3,
   Building2,
@@ -29,6 +32,9 @@ import {
 import { useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import type { Sector, Student } from "@/lib/khazna/types";
+import { QuickActionSheet } from "./QuickActionSheet";
+import { NewEntryDialog, type EntryPreset } from "./NewEntryDialog";
+import { StudentFormDrawer } from "./StudentFormDrawer";
 
 const NO_STUDENT: Student = { id: "—", name: "Student", className: "—", phone: "", guardian: "—", joined: "" };
 const NO_SECTOR: Sector = { slug: "", name: "No sector yet", short: "—", description: "", color: "var(--sector-office)", receiptPrefix: "", target: 1, creditTitles: [], debitTitles: [] };
@@ -223,8 +229,61 @@ export function AppShell({ role, sectorSlug, children }: { role: Role; sectorSlu
   const createOrg = useKhazna((s) => s.createOrg);
   const [newOrgOpen, setNewOrgOpen] = useState(false);
   const [newOrgForm, setNewOrgForm] = useState({ name: "", adminName: "", adminEmail: "", password: "" });
+  const [quickActionOpen, setQuickActionOpen] = useState(false);
+  const [globalEntryOpen, setGlobalEntryOpen] = useState(false);
+  const [globalEntryPreset, setGlobalEntryPreset] = useState<EntryPreset | undefined>(undefined);
+  const [globalStudentOpen, setGlobalStudentOpen] = useState(false);
   const currentManager = useKhazna((s) => managerNameIn(s, slug));
   const RoleIcon = ROLE_META[role].icon;
+
+  const quickActions = [
+    {
+      id: "add-receipt",
+      title: "Add Credit / Receipt",
+      subtitle: "Record fee, donation, or incoming payment",
+      icon: ArrowDownLeft,
+      colorClass: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+      onClick: () => {
+        setGlobalEntryPreset({ type: "credit" });
+        setGlobalEntryOpen(true);
+      },
+    },
+    {
+      id: "add-debit",
+      title: "Add Debit / Expense",
+      subtitle: "Record sector expense, voucher, or payout",
+      icon: ArrowUpRight,
+      colorClass: "bg-rose-500/10 text-rose-500 border-rose-500/20",
+      onClick: () => {
+        setGlobalEntryPreset({ type: "debit" });
+        setGlobalEntryOpen(true);
+      },
+    },
+    {
+      id: "add-student",
+      title: "Add Student",
+      subtitle: "Register a new student with auto-assigned Ad.No",
+      icon: UserPlus,
+      colorClass: "bg-primary/10 text-primary border-primary/20",
+      onClick: () => {
+        setGlobalStudentOpen(true);
+      },
+    },
+    ...(role === "manager"
+      ? [
+          {
+            id: "bulk-entry",
+            title: "Bulk Class Entry",
+            subtitle: "Post one fee amount to multiple students at once",
+            icon: ListChecks,
+            colorClass: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+            onClick: () => {
+              navigate({ to: "/m/$sectorSlug/bulk", params: { sectorSlug: slug } });
+            },
+          },
+        ]
+      : []),
+  ];
 
   const switchRole = (r: Role) => {
     if (r === "admin") navigate({ to: "/admin" });
@@ -422,7 +481,7 @@ export function AppShell({ role, sectorSlug, children }: { role: Role; sectorSlu
         </div>
       </motion.header>
 
-      <div className="mx-auto flex max-w-[1440px] items-start gap-6 px-3 pb-28 pt-4 sm:px-4 sm:pb-24 md:px-6 md:pt-6 lg:pb-20">
+      <div className="mx-auto flex max-w-[1440px] items-start gap-6 px-3 pb-32 pt-4 sm:px-4 sm:pb-28 md:px-6 md:pt-6 lg:pb-20">
         <aside className="no-print sticky top-[5.75rem] z-30 hidden w-60 shrink-0 self-start lg:block">
           <motion.div
             initial={entering ? { opacity: 0, x: -24 } : false}
@@ -639,8 +698,36 @@ export function AppShell({ role, sectorSlug, children }: { role: Role; sectorSlu
         </Dialog.Portal>
       </Dialog.Root>
 
+      {/* Quick Action Sheet triggered by Mobile Bottom Nav "+" Button */}
+      <QuickActionSheet
+        open={quickActionOpen}
+        onOpenChange={setQuickActionOpen}
+        actions={quickActions}
+      />
+
+      {/* Global Entry Dialog */}
+      {slug && (
+        <NewEntryDialog
+          open={globalEntryOpen}
+          onOpenChange={setGlobalEntryOpen}
+          sector={slug}
+          preset={globalEntryPreset}
+        />
+      )}
+
+      {/* Global Add Student Drawer */}
+      <StudentFormDrawer
+        open={globalStudentOpen}
+        onOpenChange={setGlobalStudentOpen}
+      />
+
       {/* Modern Floating Frosted Bottom Navigation Bar (as shown in responsive in mobile video) */}
-      <MobileBottomNav role={role} sectorSlug={slug} onOpenMenu={() => setMobileOpen(true)} />
+      <MobileBottomNav
+        role={role}
+        sectorSlug={slug}
+        onOpenMenu={() => setMobileOpen(true)}
+        onQuickAction={() => setQuickActionOpen(true)}
+      />
     </div>
   );
 }
@@ -654,16 +741,19 @@ interface MobileNavItem {
   params?: Record<string, string>;
   onClick?: () => void;
   isActive: boolean;
+  isAction?: boolean;
 }
 
 function MobileBottomNav({
   role,
   sectorSlug,
   onOpenMenu,
+  onQuickAction,
 }: {
   role: Role;
   sectorSlug: SectorSlug;
   onOpenMenu: () => void;
+  onQuickAction: () => void;
 }) {
   const { pathname } = useLocation();
   const sectors = useKhazna((s) => s.sectors);
@@ -689,18 +779,19 @@ function MobileBottomNav({
         isActive: pathname.startsWith("/admin/students"),
       },
       {
+        id: "quick-action",
+        label: "Add",
+        icon: Plus,
+        isAction: true,
+        onClick: onQuickAction,
+        isActive: false,
+      },
+      {
         id: "sectors",
         label: "Sectors",
         icon: Layers,
         to: "/admin/sectors",
         isActive: pathname.startsWith("/admin/sectors"),
-      },
-      {
-        id: "audit",
-        label: "Audit",
-        icon: ScrollText,
-        to: "/admin/audit",
-        isActive: pathname.startsWith("/admin/audit"),
       },
       {
         id: "menu",
@@ -729,12 +820,12 @@ function MobileBottomNav({
         isActive: pathname.includes("/ledger"),
       },
       {
-        id: "bulk",
-        label: "Bulk",
-        icon: ListChecks,
-        to: "/m/$sectorSlug/bulk",
-        params: { sectorSlug },
-        isActive: pathname.includes("/bulk"),
+        id: "quick-action",
+        label: "Add",
+        icon: Plus,
+        isAction: true,
+        onClick: onQuickAction,
+        isActive: false,
       },
       {
         id: "reports",
@@ -802,6 +893,22 @@ function MobileBottomNav({
       <div className="glass-strong rounded-2xl p-1.5 shadow-[0_14px_45px_rgba(0,0,0,0.18),0_2px_10px_rgba(0,0,0,0.06)] border border-white/70 dark:border-white/10 backdrop-blur-2xl">
         <div className="relative flex items-center justify-around gap-0.5">
           {items.map((item) => {
+            if (item.isAction) {
+              return (
+                <motion.button
+                  key={item.id}
+                  whileTap={{ scale: 0.88 }}
+                  whileHover={{ scale: 1.08 }}
+                  type="button"
+                  onClick={item.onClick}
+                  aria-label={item.label}
+                  className="relative -mt-5 flex size-12 shrink-0 items-center justify-center rounded-full bg-gradient-primary text-primary-foreground shadow-glow border-2 border-background/90 transition-transform focus:outline-none"
+                >
+                  <Plus className="size-6 stroke-[2.5]" />
+                </motion.button>
+              );
+            }
+
             const Icon = item.icon;
             const inner = (
               <motion.div

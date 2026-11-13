@@ -7,7 +7,8 @@ import { Btn } from "@/components/khazna/btn";
 import { Amount, Avatar, EmptyState, Field, GlassCard, PageHeader, TableShell } from "@/components/khazna/primitives";
 import { addDays, formatDate, formatINR, TODAY } from "@/lib/khazna/format";
 import { asSector } from "@/lib/khazna/data";
-import { downloadCSV } from "@/lib/khazna/download";
+import { downloadCSVReport, downloadExcelReport } from "@/lib/khazna/export";
+import { ExportPdfModal } from "@/components/khazna/ExportPdfModal";
 import { useKhazna } from "@/lib/khazna/store";
 import { reveal } from "@/components/khazna/motion";
 
@@ -31,12 +32,15 @@ function ReportsPage() {
   const students = useKhazna((s) => s.students);
   const txs = useKhazna((s) => s.transactions);
   const classes = useKhazna((s) => s.classes);
+  const college = useKhazna((s) => s.college);
   const log = useKhazna((s) => s.log);
   const [cls, setCls] = useState("Fiqh 2");
   const [from, setFrom] = useState(addDays(TODAY, -120));
   const [to, setTo] = useState(TODAY);
   const [busy, setBusy] = useState<string | null>(null);
+  const [pdfModalOpen, setPdfModalOpen] = useState(false);
 
+  // Compute student rows for current filter
   const rows = useMemo(() => {
     const list = students.filter((s) => cls === "all" || s.className === cls);
     return list
@@ -53,25 +57,114 @@ function ReportsPage() {
       .sort((a, b) => a.s.name.localeCompare(b.s.name));
   }, [students, txs, slug, cls, from, to]);
 
+  // Compute all students (unfiltered by class) for the PDF modal's full class selector
+  const allClassRows = useMemo(() => {
+    return students.map((s) => {
+      let credit = 0;
+      let debit = 0;
+      for (const t of txs) {
+        if (t.voided || t.sector !== slug || t.studentId !== s.id || t.date < from || t.date > to) continue;
+        if (t.type === "credit") credit += t.amount;
+        else debit += t.amount;
+      }
+      return {
+        studentId: s.id,
+        studentName: s.name,
+        className: s.className,
+        credit,
+        debit,
+        balance: credit - debit,
+      };
+    });
+  }, [students, txs, slug, from, to]);
+
   const sum = rows.reduce((a, r) => ({ credit: a.credit + r.credit, debit: a.debit + r.debit, balance: a.balance + r.balance }), { credit: 0, debit: 0, balance: 0 });
   const label = cls === "all" ? "All classes" : cls;
 
-  const mockExport = (kind: string) => {
-    setBusy(kind);
-    setTimeout(() => {
+  // Real Excel (.xlsx) Export
+  const exportExcel = () => {
+    if (rows.length === 0) {
+      toast.error("No student records to export in the current filter");
+      return;
+    }
+    setBusy("Excel");
+    try {
+      const cleanClass = label.replace(/\s+/g, "");
+      const filename = `Khazna_${sector.name.replace(/\s+/g, "")}_${cleanClass}_Report_${from}_${to}.xlsx`;
+      downloadExcelReport({
+        filename,
+        collegeName: college.name,
+        sectorName: sector.name,
+        className: label,
+        dateRangeStr: `${formatDate(from)} – ${formatDate(to)}`,
+        rows: rows.map((r) => ({
+          studentName: r.s.name,
+          studentId: r.s.id,
+          className: r.s.className,
+          credit: r.credit,
+          debit: r.debit,
+          balance: r.balance,
+        })),
+        totals: sum,
+      });
+      log({
+        actor: sector.name,
+        role: "manager",
+        action: "EXPORT",
+        target: `${label} Excel`,
+        details: `Class-wise report exported as Excel (.xlsx)`,
+        sector: slug,
+      });
+      toast.success("Excel (.xlsx) downloaded", { description: `${rows.length} students exported` });
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to generate Excel file");
+    } finally {
       setBusy(null);
-      log({ actor: sector.name, role: "manager", action: "EXPORT", target: `${label} report`, details: `Class-wise report exported as ${kind}`, sector: slug });
-      toast.success(`${kind} ready`, { description: `${sector.name} · ${label} · ${rows.length} students` });
-    }, 900);
+    }
   };
 
-  const csv = () => {
-    downloadCSV(`${slug}-${label.replace(/\s/g, "-").toLowerCase()}-report.csv`, [
-      ["Student", "Ad.No", "Class", "Total Credit", "Total Debit", "Balance"],
-      ...rows.map((r) => [r.s.name, r.s.id, r.s.className, r.credit, r.debit, r.balance]),
-      ["TOTAL", "", "", sum.credit, sum.debit, sum.balance],
-    ]);
-    toast.success("CSV downloaded");
+  // Real CSV Export with UTF-8 BOM
+  const exportCsv = () => {
+    if (rows.length === 0) {
+      toast.error("No student records to export in the current filter");
+      return;
+    }
+    setBusy("CSV");
+    try {
+      const cleanClass = label.replace(/\s+/g, "");
+      const filename = `Khazna_${sector.name.replace(/\s+/g, "")}_${cleanClass}_Report_${from}_${to}.csv`;
+      downloadCSVReport({
+        filename,
+        collegeName: college.name,
+        sectorName: sector.name,
+        className: label,
+        dateRangeStr: `${formatDate(from)} – ${formatDate(to)}`,
+        rows: rows.map((r) => ({
+          studentName: r.s.name,
+          studentId: r.s.id,
+          className: r.s.className,
+          credit: r.credit,
+          debit: r.debit,
+          balance: r.balance,
+        })),
+        totals: sum,
+      });
+      log({
+        actor: sector.name,
+        role: "manager",
+        action: "EXPORT",
+        target: `${label} CSV`,
+        details: `Class-wise report exported as CSV with UTF-8 BOM`,
+        sector: slug,
+      });
+      toast.success("CSV file downloaded", { description: "UTF-8 BOM included for Excel compatibility" });
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to generate CSV file");
+    } finally {
+      setBusy(null);
+    }
   };
 
   return (
@@ -82,20 +175,32 @@ function ReportsPage() {
         description={`${label} · ${formatDate(from)} – ${formatDate(to)}`}
         actions={
           <>
-            <Btn variant="glass" onClick={() => mockExport("PDF")} disabled={!!busy}>
-              {busy === "PDF" ? <Loader2 className="animate-spin" /> : <FileText />} PDF
+            <Btn variant="glass" onClick={() => setPdfModalOpen(true)}>
+              <FileText /> PDF
             </Btn>
-            <Btn variant="glass" onClick={() => mockExport("Excel")} disabled={!!busy}>
+            <Btn variant="glass" onClick={exportExcel} disabled={busy === "Excel"}>
               {busy === "Excel" ? <Loader2 className="animate-spin" /> : <FileSpreadsheet />} Excel
             </Btn>
-            <Btn variant="glass" onClick={csv}>
-              <FileDown /> CSV
+            <Btn variant="glass" onClick={exportCsv} disabled={busy === "CSV"}>
+              {busy === "CSV" ? <Loader2 className="animate-spin" /> : <FileDown />} CSV
             </Btn>
             <Btn variant="soft" onClick={() => window.print()}>
               <Printer /> Print
             </Btn>
           </>
         }
+      />
+
+      <ExportPdfModal
+        open={pdfModalOpen}
+        onOpenChange={setPdfModalOpen}
+        collegeName={college.name}
+        sectorName={sector.name}
+        classes={classes}
+        initialClass={cls}
+        initialFrom={from}
+        initialTo={to}
+        allItems={allClassRows}
       />
 
       <GlassCard className="no-print mb-4 grid grid-cols-1 gap-3 p-4 sm:grid-cols-3 w-full">
