@@ -22,6 +22,7 @@ import {
   Building2,
   Plus,
   Upload,
+  Wallet,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -421,7 +422,7 @@ export function AppShell({ role, sectorSlug, children }: { role: Role; sectorSlu
         </div>
       </motion.header>
 
-      <div className="mx-auto flex max-w-[1440px] gap-6 px-3 pb-20 pt-4 sm:px-4 md:px-6 md:pt-6">
+      <div className="mx-auto flex max-w-[1440px] gap-6 px-3 pb-28 pt-4 sm:px-4 sm:pb-24 md:px-6 md:pt-6 lg:pb-20">
         <motion.aside
           initial={entering ? { opacity: 0, x: -24 } : false}
           animate={{ opacity: 1, x: 0 }}
@@ -637,6 +638,228 @@ export function AppShell({ role, sectorSlug, children }: { role: Role; sectorSlu
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>
+
+      {/* Modern Floating Frosted Bottom Navigation Bar (as shown in responsive in mobile video) */}
+      <MobileBottomNav role={role} sectorSlug={slug} onOpenMenu={() => setMobileOpen(true)} />
     </div>
+  );
+}
+
+interface MobileNavItem {
+  id: string;
+  label: string;
+  icon: LucideIcon;
+  badge?: string | number | undefined;
+  to?: string;
+  params?: Record<string, string>;
+  onClick?: () => void;
+  isActive: boolean;
+}
+
+function MobileBottomNav({
+  role,
+  sectorSlug,
+  onOpenMenu,
+}: {
+  role: Role;
+  sectorSlug: SectorSlug;
+  onOpenMenu: () => void;
+}) {
+  const { pathname } = useLocation();
+  const sectors = useKhazna((s) => s.sectors);
+  const unread = useKhazna((s) => s.notices.filter((n) => !n.read).length);
+  const firstSector = sectors[0]?.slug ?? "office";
+
+  let items: MobileNavItem[] = [];
+
+  if (role === "admin") {
+    items = [
+      {
+        id: "overview",
+        label: "Overview",
+        icon: LayoutDashboard,
+        to: "/admin",
+        isActive: pathname === "/admin",
+      },
+      {
+        id: "students",
+        label: "Students",
+        icon: Users,
+        to: "/admin/students",
+        isActive: pathname.startsWith("/admin/students"),
+      },
+      {
+        id: "sectors",
+        label: "Sectors",
+        icon: Layers,
+        to: "/admin/sectors",
+        isActive: pathname.startsWith("/admin/sectors"),
+      },
+      {
+        id: "audit",
+        label: "Audit",
+        icon: ScrollText,
+        to: "/admin/audit",
+        isActive: pathname.startsWith("/admin/audit"),
+      },
+      {
+        id: "menu",
+        label: "More",
+        icon: MenuIcon,
+        onClick: onOpenMenu,
+        isActive: false,
+      },
+    ];
+  } else if (role === "manager") {
+    items = [
+      {
+        id: "overview",
+        label: "Overview",
+        icon: LayoutDashboard,
+        to: "/m/$sectorSlug",
+        params: { sectorSlug },
+        isActive: pathname === `/m/${sectorSlug}`,
+      },
+      {
+        id: "ledger",
+        label: "Ledger",
+        icon: ReceiptText,
+        to: "/m/$sectorSlug/ledger",
+        params: { sectorSlug },
+        isActive: pathname.includes("/ledger"),
+      },
+      {
+        id: "bulk",
+        label: "Bulk",
+        icon: ListChecks,
+        to: "/m/$sectorSlug/bulk",
+        params: { sectorSlug },
+        isActive: pathname.includes("/bulk"),
+      },
+      {
+        id: "reports",
+        label: "Reports",
+        icon: BarChart3,
+        to: "/m/$sectorSlug/reports",
+        params: { sectorSlug },
+        isActive: pathname.includes("/reports"),
+      },
+      {
+        id: "menu",
+        label: "More",
+        icon: MenuIcon,
+        onClick: onOpenMenu,
+        isActive: false,
+      },
+    ];
+  } else {
+    items = [
+      {
+        id: "home",
+        label: "Home",
+        icon: LayoutDashboard,
+        to: "/app",
+        isActive: pathname === "/app",
+      },
+      {
+        id: "ledgers",
+        label: "Ledgers",
+        icon: Wallet,
+        to: "/app/s/$sectorSlug",
+        params: { sectorSlug: firstSector },
+        isActive: pathname.startsWith("/app/s"),
+      },
+      {
+        id: "notices",
+        label: "Notices",
+        icon: Bell,
+        badge: unread > 0 ? unread : undefined,
+        to: "/app/notifications",
+        isActive: pathname.startsWith("/app/notifications"),
+      },
+      {
+        id: "profile",
+        label: "Profile",
+        icon: UserRound,
+        to: "/app/profile",
+        isActive: pathname.startsWith("/app/profile"),
+      },
+      {
+        id: "menu",
+        label: "More",
+        icon: MenuIcon,
+        onClick: onOpenMenu,
+        isActive: false,
+      },
+    ];
+  }
+
+  return (
+    <nav
+      aria-label="Mobile Navigation Bar"
+      className="no-print fixed bottom-3 inset-x-3.5 z-40 mx-auto max-w-md lg:hidden"
+    >
+      <div className="glass-strong rounded-2xl p-1.5 shadow-[0_14px_45px_rgba(0,0,0,0.18),0_2px_10px_rgba(0,0,0,0.06)] border border-white/70 dark:border-white/10 backdrop-blur-2xl">
+        <div className="relative flex items-center justify-around gap-0.5">
+          {items.map((item) => {
+            const Icon = item.icon;
+            const inner = (
+              <motion.div
+                whileTap={{ scale: 0.88 }}
+                className={cn(
+                  "relative flex flex-col items-center justify-center py-1.5 px-2 rounded-xl transition-colors min-w-[54px] select-none",
+                  item.isActive ? "text-primary font-semibold" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {item.isActive && (
+                  <motion.div
+                    layoutId="mobile-nav-pill"
+                    transition={{ type: "spring", stiffness: 450, damping: 32 }}
+                    className="absolute inset-0 rounded-xl bg-primary/15 border border-primary/25 shadow-glow"
+                  />
+                )}
+                <div className="relative">
+                  <Icon className={cn("size-5 transition-transform duration-200", item.isActive && "scale-110")} />
+                  {item.badge !== undefined && (
+                    <span className="absolute -top-1 -right-2 grid min-w-3.5 h-3.5 place-items-center rounded-full bg-primary px-1 text-[9px] font-bold text-primary-foreground shadow-glow animate-pulse">
+                      {item.badge}
+                    </span>
+                  )}
+                </div>
+                <span className="relative mt-0.5 text-[10px] tracking-tight">
+                  {item.label}
+                </span>
+              </motion.div>
+            );
+
+            if (item.onClick) {
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={item.onClick}
+                  aria-label={item.label}
+                  className="outline-none"
+                >
+                  {inner}
+                </button>
+              );
+            }
+
+            return (
+              <Link
+                key={item.id}
+                to={item.to!}
+                params={item.params as any}
+                className="outline-none"
+                aria-label={item.label}
+              >
+                {inner}
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+    </nav>
   );
 }

@@ -1,6 +1,6 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { ArrowDownLeft, ArrowRight, ArrowUpRight, Bell, Download } from "lucide-react";
+import { ArrowDownLeft, ArrowRight, ArrowUpRight, Bell, Download, UserRound, Wallet } from "lucide-react";
 import { useMemo } from "react";
 import { toast } from "sonner";
 import { Btn } from "@/components/khazna/btn";
@@ -115,6 +115,51 @@ function StudentHome() {
           </div>
         </div>
       </motion.div>
+
+      {/* Mobile Quick Action Squircles (inspired by responsive in mobile design) */}
+      <div className="mt-5 grid grid-cols-4 gap-2.5 sm:hidden">
+        <button type="button" onClick={statement} className="group flex flex-col items-center gap-1.5 text-center outline-none">
+          <motion.div
+            whileHover={{ y: -3 }}
+            whileTap={{ scale: 0.9 }}
+            className="grid size-12 place-items-center rounded-2xl border border-orange-500/30 bg-gradient-to-br from-amber-500/20 via-orange-500/20 to-rose-500/10 text-orange-600 shadow-sm backdrop-blur-md dark:text-orange-400"
+          >
+            <Download className="size-5" />
+          </motion.div>
+          <span className="text-[11px] font-medium text-foreground">Statement</span>
+        </button>
+        <Link to="/app/s/$sectorSlug" params={{ sectorSlug: sectors[0]?.slug ?? "office" }} className="group flex flex-col items-center gap-1.5 text-center">
+          <motion.div
+            whileHover={{ y: -3 }}
+            whileTap={{ scale: 0.9 }}
+            className="grid size-12 place-items-center rounded-2xl border border-cyan-500/30 bg-gradient-to-br from-cyan-500/20 via-teal-500/20 to-emerald-500/10 text-cyan-600 shadow-sm backdrop-blur-md dark:text-cyan-400"
+          >
+            <Wallet className="size-5" />
+          </motion.div>
+          <span className="text-[11px] font-medium text-foreground">Ledgers</span>
+        </Link>
+        <Link to="/app/notifications" className="group flex flex-col items-center gap-1.5 text-center">
+          <motion.div
+            whileHover={{ y: -3 }}
+            whileTap={{ scale: 0.9 }}
+            className="relative grid size-12 place-items-center rounded-2xl border border-purple-500/30 bg-gradient-to-br from-purple-500/20 via-indigo-500/20 to-violet-500/10 text-purple-600 shadow-sm backdrop-blur-md dark:text-purple-400"
+          >
+            <Bell className="size-5" />
+            {unread.length > 0 && <span className="absolute -top-1 -right-1 size-2 rounded-full bg-primary shadow-glow animate-pulse" />}
+          </motion.div>
+          <span className="text-[11px] font-medium text-foreground">Notices</span>
+        </Link>
+        <Link to="/app/profile" className="group flex flex-col items-center gap-1.5 text-center">
+          <motion.div
+            whileHover={{ y: -3 }}
+            whileTap={{ scale: 0.9 }}
+            className="grid size-12 place-items-center rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/20 via-teal-500/20 to-green-500/10 text-emerald-600 shadow-sm backdrop-blur-md dark:text-emerald-400"
+          >
+            <UserRound className="size-5" />
+          </motion.div>
+          <span className="text-[11px] font-medium text-foreground">Profile</span>
+        </Link>
+      </div>
 
       <div className="mt-8 mb-3 flex items-center justify-between">
         <h2 className="text-lg font-semibold">My sectors</h2>

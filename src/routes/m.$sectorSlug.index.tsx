@@ -1,6 +1,6 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { AlertTriangle, ArrowDownLeft, ArrowUpRight, HandCoins, ListChecks, Plus, Users, Wallet } from "lucide-react";
+import { AlertTriangle, ArrowDownLeft, ArrowUpRight, BarChart3, HandCoins, ListChecks, Plus, ReceiptText, Users, Wallet } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Btn } from "@/components/khazna/btn";
@@ -103,6 +103,57 @@ function SectorOverview() {
           </div>
         </div>
       </motion.div>
+
+      {/* Mobile Quick Action Squircles (inspired by responsive in mobile design) */}
+      <div className="mb-5 grid grid-cols-4 gap-2.5 sm:hidden">
+        <button
+          type="button"
+          onClick={() => {
+            setPreset(undefined);
+            setEntryOpen(true);
+          }}
+          className="group flex flex-col items-center gap-1.5 text-center outline-none"
+        >
+          <motion.div
+            whileHover={{ y: -3 }}
+            whileTap={{ scale: 0.9 }}
+            className="grid size-12 place-items-center rounded-2xl border border-orange-500/30 bg-gradient-to-br from-amber-500/20 via-orange-500/20 to-rose-500/10 text-orange-600 shadow-sm backdrop-blur-md dark:text-orange-400"
+          >
+            <Plus className="size-5" />
+          </motion.div>
+          <span className="text-[11px] font-medium text-foreground">New Entry</span>
+        </button>
+        <Link to="/m/$sectorSlug/bulk" params={{ sectorSlug: slug }} className="group flex flex-col items-center gap-1.5 text-center">
+          <motion.div
+            whileHover={{ y: -3 }}
+            whileTap={{ scale: 0.9 }}
+            className="grid size-12 place-items-center rounded-2xl border border-cyan-500/30 bg-gradient-to-br from-cyan-500/20 via-teal-500/20 to-emerald-500/10 text-cyan-600 shadow-sm backdrop-blur-md dark:text-cyan-400"
+          >
+            <ListChecks className="size-5" />
+          </motion.div>
+          <span className="text-[11px] font-medium text-foreground">Bulk Post</span>
+        </Link>
+        <Link to="/m/$sectorSlug/reports" params={{ sectorSlug: slug }} className="group flex flex-col items-center gap-1.5 text-center">
+          <motion.div
+            whileHover={{ y: -3 }}
+            whileTap={{ scale: 0.9 }}
+            className="grid size-12 place-items-center rounded-2xl border border-purple-500/30 bg-gradient-to-br from-purple-500/20 via-indigo-500/20 to-violet-500/10 text-purple-600 shadow-sm backdrop-blur-md dark:text-purple-400"
+          >
+            <BarChart3 className="size-5" />
+          </motion.div>
+          <span className="text-[11px] font-medium text-foreground">Reports</span>
+        </Link>
+        <Link to="/m/$sectorSlug/ledger" params={{ sectorSlug: slug }} className="group flex flex-col items-center gap-1.5 text-center">
+          <motion.div
+            whileHover={{ y: -3 }}
+            whileTap={{ scale: 0.9 }}
+            className="grid size-12 place-items-center rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/20 via-teal-500/20 to-green-500/10 text-emerald-600 shadow-sm backdrop-blur-md dark:text-emerald-400"
+          >
+            <ReceiptText className="size-5" />
+          </motion.div>
+          <span className="text-[11px] font-medium text-foreground">Ledger</span>
+        </Link>
+      </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 w-full">
         <StatCard label="Collected · 30d" icon={ArrowDownLeft} tone="credit" value={<CountUp value={d.r.credit} />} hint={`${d.r.count} entries this month`} />

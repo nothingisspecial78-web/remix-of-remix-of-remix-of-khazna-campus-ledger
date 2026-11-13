@@ -1,6 +1,6 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { AlertTriangle, ArrowDownLeft, ArrowUpRight, Check, ScrollText, Upload, Users, Wallet } from "lucide-react";
+import { AlertTriangle, ArrowDownLeft, ArrowUpRight, Check, Layers, ScrollText, Upload, Users, Wallet } from "lucide-react";
 import { AUDIT_ICON } from "@/components/khazna/audit-meta";
 import { useMemo } from "react";
 import { Btn } from "@/components/khazna/btn";
@@ -82,6 +82,50 @@ function AdminDashboard() {
           </>
         }
       />
+
+      {/* Mobile Quick Action Squircles (inspired by responsive in mobile design) */}
+      <div className="mb-5 grid grid-cols-4 gap-2.5 sm:hidden">
+        <Link to="/admin/students/import" className="group flex flex-col items-center gap-1.5 text-center">
+          <motion.div
+            whileHover={{ y: -3 }}
+            whileTap={{ scale: 0.9 }}
+            className="grid size-12 place-items-center rounded-2xl border border-orange-500/30 bg-gradient-to-br from-amber-500/20 via-orange-500/20 to-rose-500/10 text-orange-600 shadow-sm backdrop-blur-md dark:text-orange-400"
+          >
+            <Upload className="size-5" />
+          </motion.div>
+          <span className="text-[11px] font-medium text-foreground">Import</span>
+        </Link>
+        <Link to="/admin/students" className="group flex flex-col items-center gap-1.5 text-center">
+          <motion.div
+            whileHover={{ y: -3 }}
+            whileTap={{ scale: 0.9 }}
+            className="grid size-12 place-items-center rounded-2xl border border-cyan-500/30 bg-gradient-to-br from-cyan-500/20 via-teal-500/20 to-emerald-500/10 text-cyan-600 shadow-sm backdrop-blur-md dark:text-cyan-400"
+          >
+            <Users className="size-5" />
+          </motion.div>
+          <span className="text-[11px] font-medium text-foreground">Students</span>
+        </Link>
+        <Link to="/admin/sectors" className="group flex flex-col items-center gap-1.5 text-center">
+          <motion.div
+            whileHover={{ y: -3 }}
+            whileTap={{ scale: 0.9 }}
+            className="grid size-12 place-items-center rounded-2xl border border-purple-500/30 bg-gradient-to-br from-purple-500/20 via-indigo-500/20 to-violet-500/10 text-purple-600 shadow-sm backdrop-blur-md dark:text-purple-400"
+          >
+            <Layers className="size-5" />
+          </motion.div>
+          <span className="text-[11px] font-medium text-foreground">Sectors</span>
+        </Link>
+        <Link to="/admin/audit" className="group flex flex-col items-center gap-1.5 text-center">
+          <motion.div
+            whileHover={{ y: -3 }}
+            whileTap={{ scale: 0.9 }}
+            className="grid size-12 place-items-center rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-500/20 via-teal-500/20 to-green-500/10 text-emerald-600 shadow-sm backdrop-blur-md dark:text-emerald-400"
+          >
+            <ScrollText className="size-5" />
+          </motion.div>
+          <span className="text-[11px] font-medium text-foreground">Audit</span>
+        </Link>
+      </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 w-full">
         <StatCard label="Total balance held" icon={Wallet} value={<CountUp value={stats.all.balance} />} hint={<>Across {sectors.length} sectors</>} />
