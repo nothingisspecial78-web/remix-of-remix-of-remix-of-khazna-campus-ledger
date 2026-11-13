@@ -119,10 +119,10 @@ function StudentHome() {
       <div className="mt-8 mb-3 flex items-center justify-between">
         <h2 className="text-lg font-semibold">My sectors</h2>
       </div>
-      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5 w-full">
         {d.per.map((p, i) => (
-          <Link key={p.sector.slug} to="/app/s/$sectorSlug" params={{ sectorSlug: p.sector.slug }} className="block">
-            <SectorTile sector={p.sector} value={p.t.balance} delay={0.05 * i}>
+          <Link key={p.sector.slug} to="/app/s/$sectorSlug" params={{ sectorSlug: p.sector.slug }} className="block w-full">
+            <SectorTile sector={p.sector} value={p.t.balance} delay={0.05 * i} className="w-full">
               {p.last ? (
                 <>
                   <div className="truncate text-foreground/90">{p.last.title}</div>
@@ -139,8 +139,8 @@ function StudentHome() {
         ))}
       </div>
 
-      <div className="mt-8 grid gap-4 lg:grid-cols-3">
-        <GlassCard className="p-5 lg:col-span-2">
+      <div className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-3 w-full">
+        <GlassCard className="p-4 sm:p-5 lg:col-span-2 w-full">
           <h3 className="font-semibold">Recent transactions</h3>
           <ul className="mt-3 divide-y divide-hairline">
             {d.mine.slice(0, 8).map((t, i) => {
@@ -163,7 +163,7 @@ function StudentHome() {
             })}
           </ul>
         </GlassCard>
-        <GlassCard className="p-5" transition={{ delay: 0.1 }}>
+        <GlassCard className="p-4 sm:p-5 w-full" transition={{ delay: 0.1 }}>
           <div className="flex items-center justify-between">
             <h3 className="font-semibold">Notifications</h3>
             {unread.length > 0 && <Chip tone="primary">{unread.length} new</Chip>}

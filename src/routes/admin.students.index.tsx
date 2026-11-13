@@ -90,7 +90,7 @@ function StudentsPage() {
         }
       />
 
-      <motion.div {...reveal()} className="glass mb-4 flex flex-col gap-3 p-3 lg:flex-row lg:items-center">
+      <motion.div {...reveal()} className="glass mb-4 flex flex-col gap-3 p-3 lg:flex-row lg:items-center w-full">
         <SearchInput value={q} onChange={(v) => { setQ(v); setPage(1); }} placeholder="Search by name, Ad.No or phone…" className="lg:w-80" />
         <div className="flex flex-wrap gap-1.5">
           {["All", ...classes].map((c) => (
@@ -101,7 +101,7 @@ function StudentsPage() {
         </div>
       </motion.div>
 
-      <TableShell>
+      <TableShell className="w-full">
         {rows.length === 0 ? (
           <EmptyState icon={Users} title="No students match" body="Try a different name, Ad.No or class filter." />
         ) : (

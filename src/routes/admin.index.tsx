@@ -83,7 +83,7 @@ function AdminDashboard() {
         }
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 w-full">
         <StatCard label="Total balance held" icon={Wallet} value={<CountUp value={stats.all.balance} />} hint={<>Across {sectors.length} sectors</>} />
         <StatCard
           label="Collected · 30 days"
@@ -105,7 +105,7 @@ function AdminDashboard() {
       </div>
 
       {setupLeft > 0 && (
-        <GlassCard className="mt-8 p-6">
+        <GlassCard className="mt-8 p-4 sm:p-6 w-full">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <h2 className="text-lg font-semibold text-foreground">Set up {college.name}</h2>
@@ -117,7 +117,7 @@ function AdminDashboard() {
               {3 - setupLeft}/3 done
             </Chip>
           </div>
-          <div className="mt-5 grid gap-3 md:grid-cols-3">
+          <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3 w-full">
             {setup.map((x, i) => (
               <motion.div key={x.title} {...reveal(i)} className={`glass-inset flex flex-col gap-3 p-4 ${x.done ? "opacity-70" : ""}`}>
                 <div className="flex items-center gap-3">
@@ -148,10 +148,10 @@ function AdminDashboard() {
           Manage sectors →
         </Link>
       </div>
-      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5 w-full">
         {stats.perSector.map(({ sector, t, active }, i) => (
-          <Link key={sector.slug} to="/m/$sectorSlug" params={{ sectorSlug: sector.slug }} className="block">
-            <SectorTile sector={sector} value={t.balance} delay={0.05 * i}>
+          <Link key={sector.slug} to="/m/$sectorSlug" params={{ sectorSlug: sector.slug }} className="block w-full">
+            <SectorTile sector={sector} value={t.balance} delay={0.05 * i} className="w-full">
               <div className="flex justify-between num">
                 <span className="text-credit">+{formatCompactINR(t.credit)}</span>
                 <span className="text-debit">−{formatCompactINR(t.debit)}</span>
@@ -162,8 +162,8 @@ function AdminDashboard() {
         ))}
       </div>
 
-      <div className="mt-8 grid gap-4 lg:grid-cols-3">
-        <GlassCard className="p-6">
+      <div className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-3 w-full">
+        <GlassCard className="p-4 sm:p-6 w-full">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold text-foreground">Term collection</h3>
             <Chip tone="info">Term 2</Chip>
@@ -204,7 +204,7 @@ function AdminDashboard() {
           </div>
         </GlassCard>
 
-        <GlassCard className="p-6 lg:col-span-2" transition={{ delay: 0.1 }}>
+        <GlassCard className="p-4 sm:p-6 lg:col-span-2 w-full" transition={{ delay: 0.1 }}>
           <div className="flex items-center justify-between">
             <h3 className="font-semibold text-foreground">Recent activity</h3>
             <Link to="/admin/audit" className="text-xs text-primary hover:underline">
@@ -235,7 +235,7 @@ function AdminDashboard() {
       </div>
 
       {pendingInvite && (
-      <GlassCard className="mt-4 flex flex-col items-start justify-between gap-4 p-5 sm:flex-row sm:items-center" transition={{ delay: 0.2 }}>
+      <GlassCard className="mt-4 flex flex-col items-start justify-between gap-4 p-4 sm:p-5 sm:flex-row sm:items-center w-full" transition={{ delay: 0.2 }}>
         <div className="flex items-center gap-3">
           <Avatar name={pendingInvite.name} />
           <div>

@@ -14,7 +14,7 @@ export function SectorTile({ sector, value, label = "Balance", children, delay =
     <motion.div
       {...reveal(0, delay)}
       whileHover={{ y: -4 }}
-      className={cn("tile-glossy group h-full p-3 sm:p-4", className)}
+      className={cn("tile-glossy group h-full w-full p-4 sm:p-5", className)}
       style={tileVar(sector.color)}
     >
       <Icon aria-hidden className="pointer-events-none absolute -bottom-7 -right-7 size-20 sm:size-24 text-tile opacity-[0.06] transition-all duration-500 group-hover:-rotate-12 group-hover:scale-110 group-hover:opacity-[0.12]" />

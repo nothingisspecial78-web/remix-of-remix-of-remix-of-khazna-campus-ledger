@@ -264,7 +264,7 @@ export function AppShell({ role, sectorSlug, children }: { role: Role; sectorSlu
         initial={entering ? { opacity: 0, y: -18 } : false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-        className="no-print sticky top-0 z-40 px-2 pt-2 md:px-4 md:pt-3"
+        className="no-print sticky top-0 z-40 px-3 pt-2.5 sm:px-4 md:px-6 md:pt-3"
       >
         <div className="glass-strong mx-auto flex h-16 max-w-[1440px] items-center gap-2 rounded-2xl px-3 md:gap-3 md:px-4">
           <button className="rounded-lg p-2 text-muted-foreground hover:bg-accent lg:hidden" onClick={() => setMobileOpen(true)} aria-label="Open menu">
@@ -421,7 +421,7 @@ export function AppShell({ role, sectorSlug, children }: { role: Role; sectorSlu
         </div>
       </motion.header>
 
-      <div className="mx-auto flex max-w-[1440px] gap-6 px-3 pb-20 pt-5 md:px-6 md:pt-6">
+      <div className="mx-auto flex max-w-[1440px] gap-6 px-3 pb-20 pt-4 sm:px-4 md:px-6 md:pt-6">
         <motion.aside
           initial={entering ? { opacity: 0, x: -24 } : false}
           animate={{ opacity: 1, x: 0 }}

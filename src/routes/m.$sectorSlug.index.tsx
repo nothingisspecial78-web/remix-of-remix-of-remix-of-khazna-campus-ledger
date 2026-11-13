@@ -104,15 +104,15 @@ function SectorOverview() {
         </div>
       </motion.div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 w-full">
         <StatCard label="Collected · 30d" icon={ArrowDownLeft} tone="credit" value={<CountUp value={d.r.credit} />} hint={`${d.r.count} entries this month`} />
         <StatCard label="Debited · 30d" icon={ArrowUpRight} tone="debit" delay={0.05} value={<CountUp value={d.r.debit} />} hint="Fees & charges posted" />
         <StatCard label="Active ledgers" icon={Users} tone="info" delay={0.1} value={<CountUp value={d.active} format={(n) => String(Math.round(n))} />} hint="Students with entries" />
         <StatCard label="Pending dues" icon={AlertTriangle} tone="primary" delay={0.15} value={<CountUp value={d.pending.amount} />} hint={`${d.pending.count} students below zero`} />
       </div>
 
-      <div className="mt-6 grid gap-4 xl:grid-cols-3">
-        <GlassCard className="p-5 xl:col-span-2">
+      <div className="mt-6 grid grid-cols-1 gap-4 xl:grid-cols-3 w-full">
+        <GlassCard className="p-4 sm:p-5 xl:col-span-2 w-full">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <h3 className="font-semibold">Last 30 days</h3>
@@ -162,7 +162,7 @@ function SectorOverview() {
           </div>
         </GlassCard>
 
-        <GlassCard className="p-5" transition={{ delay: 0.1 }}>
+        <GlassCard className="p-4 sm:p-5 w-full" transition={{ delay: 0.1 }}>
           <h3 className="font-semibold">Top debit titles</h3>
           <p className="text-xs text-muted-foreground">Last 120 days</p>
           <div className="mt-5 space-y-4">
@@ -183,7 +183,7 @@ function SectorOverview() {
         </GlassCard>
       </div>
 
-      <GlassCard className="mt-4 p-5" transition={{ delay: 0.15 }}>
+      <GlassCard className="mt-4 p-4 sm:p-5 w-full" transition={{ delay: 0.15 }}>
         <div className="flex items-center justify-between">
           <div>
             <h3 className="font-semibold">Pending dues</h3>
@@ -196,7 +196,7 @@ function SectorOverview() {
         {d.dues.length === 0 ? (
           <EmptyState icon={Wallet} title="No pending dues" body="Every student in this sector has a zero or positive balance." />
         ) : (
-          <ul className="mt-3 grid gap-2 md:grid-cols-2">
+          <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 w-full">
             {d.dues.slice(0, 8).map((x) => (
               <li key={x.student.id} className="glass-inset flex items-center gap-3 p-3">
                 <Avatar name={x.student.name} size={34} />

@@ -80,7 +80,7 @@ function StudentSectorLedger() {
         </div>
       </motion.div>
 
-      <div className="mb-6 grid gap-4 sm:grid-cols-3">
+      <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3 w-full">
         <StatCard label="Total credits" icon={ArrowDownLeft} tone="credit" value={<CountUp value={t.credit} />} />
         <StatCard label="Total debits" icon={ArrowUpRight} tone="debit" delay={0.05} value={<CountUp value={t.debit} />} />
         <StatCard label="Entries" icon={Hash} tone="info" delay={0.1} value={<CountUp value={t.count} format={(n) => String(Math.round(n))} />} />

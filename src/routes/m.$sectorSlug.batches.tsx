@@ -95,7 +95,7 @@ function BatchesPage() {
                 <AnimatePresence initial={false}>
                   {expanded && (
                     <motion.div initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }} className="overflow-hidden border-t border-hairline">
-                      <div className="grid gap-2 p-4 sm:grid-cols-2 lg:grid-cols-3">
+                      <div className="grid grid-cols-1 gap-2 p-4 sm:grid-cols-2 lg:grid-cols-3 w-full">
                         {b.studentIds.map((id, k) => {
                           const s = students.find((x) => x.id === id);
                           return (

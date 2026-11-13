@@ -66,7 +66,7 @@ function AdminsPage() {
         <Chip tone="primary">Owner</Chip>
       </motion.div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 w-full">
         {managers.map((m, i) => (
           <motion.div key={m.id} {...reveal(i)} className="glass hover-lift flex flex-col p-5">
             <div className="flex items-start gap-3">

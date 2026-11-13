@@ -407,7 +407,7 @@ function BulkPage() {
           {/* STEP 3 — PREVIEW */}
           {step === 2 && (
             <div>
-              <div className="mb-4 grid gap-3 sm:grid-cols-3">
+              <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3 w-full">
                 <GlassCard className="p-4">
                   <div className="text-xs text-muted-foreground">Entries</div>
                   <div className="font-display text-2xl font-semibold num">{chosen.length}</div>
@@ -426,7 +426,7 @@ function BulkPage() {
                   <AlertTriangle className="size-4" /> {goingNegative} student{goingNegative === 1 ? "" : "s"} will move into dues after this batch.
                 </div>
               )}
-              <TableShell>
+              <TableShell className="w-full">
                 {/* Mobile Aesthetic Bulk Preview Cards (No horizontal side-scrolling) */}
                 <div className="divide-y divide-hairline md:hidden">
                   {preview.map((p, i) => (

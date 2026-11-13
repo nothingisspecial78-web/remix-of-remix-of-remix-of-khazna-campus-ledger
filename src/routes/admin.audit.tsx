@@ -71,7 +71,7 @@ function AuditPage() {
         }
       />
 
-      <motion.div {...reveal()} className="glass mb-4 grid gap-3 p-3 md:grid-cols-2 xl:grid-cols-[1fr_auto_auto_auto]">
+      <motion.div {...reveal()} className="glass mb-4 grid grid-cols-1 gap-3 p-3 md:grid-cols-2 xl:grid-cols-[1fr_auto_auto_auto] w-full">
         <SearchInput value={q} onChange={(v) => { setQ(v); setPage(1); }} placeholder="Search actor, target or details…" />
         <select className="k-input xl:w-48" value={action} onChange={(e) => { setAction(e.target.value as AuditAction | "all"); setPage(1); }}>
           <option value="all">All actions</option>

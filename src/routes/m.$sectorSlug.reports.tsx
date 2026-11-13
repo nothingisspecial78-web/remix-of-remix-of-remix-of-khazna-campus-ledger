@@ -98,7 +98,7 @@ function ReportsPage() {
         }
       />
 
-      <GlassCard className="no-print mb-4 grid gap-3 p-4 sm:grid-cols-3">
+      <GlassCard className="no-print mb-4 grid grid-cols-1 gap-3 p-4 sm:grid-cols-3 w-full">
         <Field label="Class">
           <select className="k-input" value={cls} onChange={(e) => setCls(e.target.value)}>
             <option value="all">All classes</option>
@@ -115,7 +115,7 @@ function ReportsPage() {
         </Field>
       </GlassCard>
 
-      <div className="mb-4 grid grid-cols-3 gap-3">
+      <div className="mb-4 grid grid-cols-3 gap-2 sm:gap-3 w-full">
         <motion.div {...reveal()} className="glass p-4">
           <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Total credit</div>
           <div className="font-display text-xl font-semibold text-credit num">{formatINR(sum.credit)}</div>

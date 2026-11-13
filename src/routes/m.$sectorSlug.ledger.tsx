@@ -111,7 +111,7 @@ function LedgerPage() {
             ]}
           />
         </div>
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 w-full">
           <select className="k-input" value={cls} onChange={(e) => { setCls(e.target.value); reset(); }}>
             <option value="all">All classes</option>
             {classes.map((c) => (
@@ -123,7 +123,7 @@ function LedgerPage() {
         </div>
       </motion.div>
 
-      <div className="mb-4 grid grid-cols-3 gap-3">
+      <div className="mb-4 grid grid-cols-3 gap-2 sm:gap-3 w-full">
         <motion.div {...reveal()} className="glass p-3 md:p-4">
           <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Credits</div>
           <div className="font-semibold text-credit num md:text-lg">{formatINR(sum.credit)}</div>

@@ -61,7 +61,7 @@ function ProfilePage() {
   return (
     <div>
       <PageHeader eyebrow="Account" title="My profile" />
-      <div className="grid gap-4 lg:grid-cols-[22rem_1fr]">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[22rem_1fr] w-full">
         <GlassCard className="p-6 text-center">
           <div className="mx-auto w-fit rounded-full bg-gradient-primary p-1 shadow-glow">
             <Avatar name={me.name} size={96} className="border-4 border-background" />
@@ -138,10 +138,10 @@ function ProfilePage() {
           <span className={cn("font-semibold num", combined.balance < 0 ? "text-debit" : "text-foreground")}>{formatINR(combined.balance)}</span>
         </div>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5 w-full">
         {perSector.map((p, i) => (
-          <Link key={p.sector.slug} to="/app/s/$sectorSlug" params={{ sectorSlug: p.sector.slug }} className="block" aria-label={`Open ${p.sector.name} ledger`}>
-            <SectorTile sector={p.sector} value={p.t.balance} delay={0.15 + 0.05 * i}>
+          <Link key={p.sector.slug} to="/app/s/$sectorSlug" params={{ sectorSlug: p.sector.slug }} className="block w-full" aria-label={`Open ${p.sector.name} ledger`}>
+            <SectorTile sector={p.sector} value={p.t.balance} delay={0.15 + 0.05 * i} className="w-full">
               <div className="flex items-center justify-between">
                 <span className="num">{p.t.count} entries</span>
                 <span className="inline-flex items-center gap-1 text-tile">View ledger <ArrowRight className="size-3" /></span>

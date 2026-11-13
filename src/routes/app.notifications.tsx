@@ -141,7 +141,7 @@ function NotificationsPage() {
         })}
       </div>
 
-      <div className="grid items-start gap-4 lg:grid-cols-[1fr_22rem]">
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[1fr_22rem] w-full">
         <div className="glass divide-y divide-hairline overflow-hidden">
           {shown.length === 0 && <EmptyState icon={BellOff} title="No unread notifications" body="New deposits, fees and reminders will show up here." />}
           {shown.map((n, i) => {

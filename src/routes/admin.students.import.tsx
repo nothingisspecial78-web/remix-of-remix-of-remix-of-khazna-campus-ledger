@@ -265,7 +265,7 @@ function ImportPage() {
 
           {step === 2 && (
             <div>
-              <div className="mb-4 grid gap-3 sm:grid-cols-3">
+              <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3 w-full">
                 <GlassCard className="p-4">
                   <div className="text-xs text-muted-foreground">Rows in file</div>
                   <div className="font-display text-2xl font-semibold num">{validated.length}</div>
@@ -290,7 +290,7 @@ function ImportPage() {
                   Invalid {invalidRows.length}
                 </FilterChip>
               </div>
-              <TableShell>
+              <TableShell className="w-full">
                 {/* Mobile Aesthetic Import Cards (No horizontal side-scrolling) */}
                 <div className="divide-y divide-hairline md:hidden">
                   {shown.map((v, i) => (
