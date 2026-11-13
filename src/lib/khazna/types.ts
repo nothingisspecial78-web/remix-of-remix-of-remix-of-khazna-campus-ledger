@@ -64,6 +64,8 @@ export interface Batch {
   createdBy: string;
   createdAt: string;
   voided?: VoidInfo | undefined;
+  updatedAt?: string | undefined;
+  updatedBy?: string | undefined;
 }
 
 export type AuditAction =
@@ -73,13 +75,17 @@ export type AuditAction =
   | "VOID_ENTRY"
   | "DELETE_ENTRY"
   | "BULK_POST"
+  | "EDIT_BATCH"
   | "VOID_BATCH"
+  | "DELETE_BATCH"
   | "ADD_STUDENT"
   | "EDIT_STUDENT"
   | "DELETE_STUDENT"
   | "IMPORT_STUDENTS"
   | "ASSIGN_SECTOR"
   | "INVITE_ADMIN"
+  | "EDIT_ADMIN"
+  | "DELETE_ADMIN"
   | "UPDATE_SECTOR"
   | "UPDATE_PROFILE"
   | "ADD_SECTOR"
@@ -106,7 +112,7 @@ export interface Manager {
   email: string;
   phone: string;
   sectors: SectorSlug[];
-  status: "active" | "invited";
+  status: "active" | "invited" | "inactive";
   lastActive: string;
 }
 

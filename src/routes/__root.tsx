@@ -120,8 +120,95 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="en">
       <head>
         <HeadContent />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('khazna-theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark');}}catch(e){}})();`,
+          }}
+        />
       </head>
       <body>
+        {/* Fast pure HTML/CSS branded splash screen (<100ms render, 900-1200ms dismiss) */}
+        <div
+          id="khazna-fast-splash"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 99999,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "var(--background, #F7F5F2)",
+            transition: "opacity 0.4s ease, visibility 0.4s ease",
+            pointerEvents: "all",
+          }}
+        >
+          <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <svg
+              style={{ width: "96px", height: "96px", transform: "rotate(-90deg)", animation: "spin 1.4s linear infinite" }}
+              viewBox="0 0 100 100"
+            >
+              <circle cx="50" cy="50" r="44" stroke="#FDBA74" strokeWidth="3" fill="none" opacity="0.25" />
+              <circle
+                cx="50"
+                cy="50"
+                r="44"
+                stroke="#F97316"
+                strokeWidth="3.5"
+                fill="none"
+                strokeDasharray="276"
+                strokeDashoffset="90"
+                strokeLinecap="round"
+              />
+            </svg>
+            <div
+              style={{
+                position: "absolute",
+                width: "60px",
+                height: "60px",
+                borderRadius: "18px",
+                overflow: "hidden",
+                boxShadow: "0 12px 36px -8px rgba(249,115,22,0.65)",
+                animation: "pulse-scale 1.6s ease-in-out infinite",
+              }}
+            >
+              <img src="/icon-192.png" alt="Khazna" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            </div>
+          </div>
+          <div style={{ marginTop: "20px", textAlign: "center" }}>
+            <div
+              style={{
+                fontFamily: "'Bricolage Grotesque', system-ui, sans-serif",
+                fontWeight: 700,
+                fontSize: "22px",
+                color: "var(--foreground, #0F172A)",
+                letterSpacing: "-0.02em",
+              }}
+            >
+              Khazna
+            </div>
+            <div
+              style={{
+                fontFamily: "'Geist', system-ui, sans-serif",
+                fontSize: "11px",
+                color: "var(--subtle, #64748B)",
+                letterSpacing: "0.15em",
+                textTransform: "uppercase",
+                marginTop: "2px",
+              }}
+            >
+              Campus Ledger
+            </div>
+          </div>
+          <style
+            dangerouslySetInnerHTML={{
+              __html: `
+                @keyframes spin { 100% { transform: rotate(270deg); } }
+                @keyframes pulse-scale { 0%, 100% { transform: scale(0.92); } 50% { transform: scale(1); } }
+              `,
+            }}
+          />
+        </div>
         {children}
         <Scripts />
       </body>
@@ -131,6 +218,20 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  useEffect(() => {
+    const splash = document.getElementById("khazna-fast-splash");
+    if (splash) {
+      const timer = setTimeout(() => {
+        splash.style.opacity = "0";
+        splash.style.pointerEvents = "none";
+        setTimeout(() => {
+          splash.remove();
+        }, 400);
+      }, 950);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

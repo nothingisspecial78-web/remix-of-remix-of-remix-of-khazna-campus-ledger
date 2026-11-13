@@ -149,6 +149,7 @@ export const createEmptyOrgData = (input: { id?: string; name: string; adminName
 // Storage keys
 const STORAGE_ORGS_KEY = "khazna_organizations_v1";
 const STORAGE_ACTIVE_ORG_KEY = "khazna_active_org_id_v1";
+const STORAGE_CURRENT_ROLE_KEY = "khazna_current_role_v1";
 const storageOrgDataKey = (id: string) => `khazna_org_data_v1_${id}`;
 
 const loadStoredOrgs = (): OrgSummary[] => {
@@ -210,6 +211,10 @@ const saveOrgData = (data: OrgStatePayload) => {
 export const managerNameIn = (st: { managers: Manager[] }, sector: SectorSlug) => st.managers.find((m) => m.sectors.includes(sector))?.name ?? managerNameFor(sector);
 
 interface KhaznaState extends OrgStatePayload {
+  // Role & Session
+  currentRole: Role;
+  setCurrentRole: (r: Role) => void;
+
   // Multi-organization management
   organizations: OrgSummary[];
   activeOrgId: string;
@@ -228,12 +233,17 @@ interface KhaznaState extends OrgStatePayload {
   voidEntry: (id: string, reason: string) => void;
   postBatch: (input: BatchInput) => Batch;
   voidBatch: (id: string, reason: string) => void;
+  editBatch: (id: string, patch: { title?: string; date?: string }) => void;
+  deleteBatch: (id: string) => void;
   addStudent: (s: Student) => void;
   editStudent: (id: string, patch: Partial<Student>) => void;
   deleteStudent: (id: string) => void;
   importStudents: (list: Student[]) => void;
   assignSectors: (managerId: string, sectors: SectorSlug[]) => void;
   inviteManager: (m: Omit<Manager, "id" | "status" | "lastActive">) => void;
+  editManager: (id: string, patch: Partial<Manager>) => void;
+  deleteManager: (id: string) => void;
+  toggleManagerStatus: (id: string) => void;
   updateSector: (slug: SectorSlug, patch: Partial<Pick<Sector, "description" | "target" | "receiptPrefix">>) => void;
   addClass: (c: string) => void;
   editClass: (oldName: string, newName: string) => void;
@@ -248,6 +258,7 @@ interface KhaznaState extends OrgStatePayload {
 // Initial hydration
 const initialOrgs = loadStoredOrgs();
 const initialActiveOrgId = (typeof window !== "undefined" && window.localStorage?.getItem(STORAGE_ACTIVE_ORG_KEY)) || DEMO_ORG_ID;
+const initialRole = (typeof window !== "undefined" && (window.localStorage?.getItem(STORAGE_CURRENT_ROLE_KEY) as Role)) || "manager";
 const initialData = loadOrgData(initialActiveOrgId);
 
 export const useKhazna = create<KhaznaState>((set, get) => {
@@ -274,6 +285,16 @@ export const useKhazna = create<KhaznaState>((set, get) => {
     ...initialData,
     organizations: initialOrgs,
     activeOrgId: initialData.college.id,
+    currentRole: initialRole,
+
+    setCurrentRole: (r: Role) => {
+      set({ currentRole: r });
+      if (typeof window !== "undefined") {
+        try {
+          window.localStorage.setItem(STORAGE_CURRENT_ROLE_KEY, r);
+        } catch {}
+      }
+    },
 
     switchOrg: (id: string) => {
       // Save current state first
@@ -456,6 +477,58 @@ export const useKhazna = create<KhaznaState>((set, get) => {
       persist({ batches: nextBatches, transactions: nextTxs });
     },
 
+    editBatch: (id, patch) => {
+      const b = get().batches.find((x) => x.id === id);
+      if (!b) return;
+      const updated: Batch = {
+        ...b,
+        ...(patch.title ? { title: patch.title.trim() } : {}),
+        ...(patch.date ? { date: patch.date } : {}),
+        updatedAt: nowIso(),
+        updatedBy: b.createdBy,
+      };
+      const nextBatches = get().batches.map((x) => (x.id === id ? updated : x));
+      const nextTxs = get().transactions.map((t) => {
+        if (t.batchId === id) {
+          return {
+            ...t,
+            ...(patch.title ? { title: patch.title.trim() } : {}),
+            ...(patch.date ? { date: patch.date } : {}),
+            updatedAt: nowIso(),
+            updatedBy: b.createdBy,
+          };
+        }
+        return t;
+      });
+      set({ batches: nextBatches, transactions: nextTxs });
+      get().log({
+        actor: b.createdBy,
+        role: "manager",
+        action: "EDIT_BATCH",
+        target: id,
+        details: `Updated batch ${id}: ${patch.title ?? b.title}`,
+        sector: b.sector,
+      });
+      persist({ batches: nextBatches, transactions: nextTxs });
+    },
+
+    deleteBatch: (id) => {
+      const b = get().batches.find((x) => x.id === id);
+      if (!b) return;
+      const nextBatches = get().batches.filter((x) => x.id !== id);
+      const nextTxs = get().transactions.filter((t) => t.batchId !== id);
+      set({ batches: nextBatches, transactions: nextTxs });
+      get().log({
+        actor: b.createdBy,
+        role: "manager",
+        action: "DELETE_BATCH",
+        target: id,
+        details: `Deleted batch ${id} and reversed ${b.studentIds.length} entries`,
+        sector: b.sector,
+      });
+      persist({ batches: nextBatches, transactions: nextTxs });
+    },
+
     addStudent: (s) => {
       const nextStudents = [...get().students, s];
       set({ students: nextStudents });
@@ -560,6 +633,54 @@ export const useKhazna = create<KhaznaState>((set, get) => {
       const nextManagers = [...get().managers, { ...m, id: uid("M"), status: "invited", lastActive: NOW_ISO }];
       set({ managers: nextManagers });
       get().log({ actor: get().college.adminName, role: "admin", action: "INVITE_ADMIN", target: m.name, details: `Invitation sent to ${m.email}` });
+      persist({ managers: nextManagers });
+    },
+
+    editManager: (id, patch) => {
+      const m = get().managers.find((x) => x.id === id);
+      if (!m) return;
+      const updated: Manager = { ...m, ...patch };
+      const nextManagers = get().managers.map((x) => (x.id === id ? updated : x));
+      set({ managers: nextManagers });
+      get().log({
+        actor: get().college.adminName,
+        role: "admin",
+        action: "EDIT_ADMIN",
+        target: updated.name,
+        details: `Updated manager details for ${updated.email}`,
+      });
+      persist({ managers: nextManagers });
+    },
+
+    deleteManager: (id) => {
+      const m = get().managers.find((x) => x.id === id);
+      if (!m) return;
+      const nextManagers = get().managers.filter((x) => x.id !== id);
+      set({ managers: nextManagers });
+      get().log({
+        actor: get().college.adminName,
+        role: "admin",
+        action: "DELETE_ADMIN",
+        target: m.name,
+        details: `Removed manager ${m.email}`,
+      });
+      persist({ managers: nextManagers });
+    },
+
+    toggleManagerStatus: (id) => {
+      const m = get().managers.find((x) => x.id === id);
+      if (!m) return;
+      const newStatus = m.status === "active" ? "inactive" : "active";
+      const updated: Manager = { ...m, status: newStatus };
+      const nextManagers = get().managers.map((x) => (x.id === id ? updated : x));
+      set({ managers: nextManagers });
+      get().log({
+        actor: get().college.adminName,
+        role: "admin",
+        action: "EDIT_ADMIN",
+        target: m.name,
+        details: `Status changed to ${newStatus}`,
+      });
       persist({ managers: nextManagers });
     },
 

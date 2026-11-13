@@ -13,7 +13,7 @@ import {
   LayoutDashboard,
   ListChecks,
   LogOut,
-  Menu as MenuIcon,
+  MoreVertical,
   ReceiptText,
   ScrollText,
   ShieldCheck,
@@ -33,6 +33,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import type { Sector, Student } from "@/lib/khazna/types";
 import { QuickActionSheet } from "./QuickActionSheet";
+import { AestheticMenu } from "./AestheticMenu";
 import { NewEntryDialog, type EntryPreset } from "./NewEntryDialog";
 import { StudentFormDrawer } from "./StudentFormDrawer";
 
@@ -164,6 +165,49 @@ function NavList({ role, sectorSlug, onNavigate }: { role: Role; sectorSlug: Sec
   );
 }
 
+function TabletNavRail({ role, sectorSlug }: { role: Role; sectorSlug: SectorSlug }) {
+  const groups = useNav(role, sectorSlug);
+  return (
+    <aside className="no-print sticky top-[5.75rem] z-30 hidden w-20 shrink-0 self-start md:flex lg:hidden">
+      <div className="glass max-h-[calc(100dvh-6.75rem)] w-full overflow-y-auto p-2 flex flex-col items-center gap-4 rounded-2xl [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        {groups.map((g) => (
+          <div key={g.title} className="flex flex-col items-center gap-1.5 w-full">
+            {g.items.map((it) => (
+              <div key={it.label} className="w-full flex justify-center">
+                {it.render({
+                  onClick: () => {},
+                  className:
+                    "group relative flex flex-col items-center justify-center rounded-xl p-2 text-muted-foreground hover:bg-accent hover:text-foreground data-[status=active]:bg-accent data-[status=active]:text-primary w-14 transition-colors",
+                  children: ({ isActive }) => (
+                    <>
+                      {isActive && (
+                        <motion.span
+                          layoutId="rail-active"
+                          className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-full bg-primary"
+                        />
+                      )}
+                      {it.tile ? (
+                        <span className="tile-icon size-6 mb-1" style={tileVar(it.tile)}>
+                          <it.icon className="size-3.5" />
+                        </span>
+                      ) : (
+                        <it.icon className={cn("size-5 mb-1", isActive && "text-primary")} />
+                      )}
+                      <span className="text-[10px] text-center font-medium leading-tight truncate w-full">
+                        {it.label}
+                      </span>
+                    </>
+                  ),
+                })}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </aside>
+  );
+}
+
 function ContextCard({ role, sectorSlug }: { role: Role; sectorSlug: SectorSlug }) {
   const sector = useKhazna((s) => s.sectors.find((x) => x.slug === sectorSlug)) ?? NO_SECTOR;
   const managerName = useKhazna((s) => managerNameIn(s, sectorSlug));
@@ -215,7 +259,8 @@ export function AppShell({ role, sectorSlug, children }: { role: Role; sectorSlu
   const sectors = useKhazna((s) => s.sectors);
   const unread = useKhazna((s) => s.notices.filter((n) => !n.read).length);
   const me = useKhazna((s) => s.students.find((x) => x.id === s.meStudentId)) ?? NO_STUDENT;
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const setCurrentRole = useKhazna((s) => s.setCurrentRole);
+  const [aestheticMenuOpen, setAestheticMenuOpen] = useState(false);
   // Arriving straight from the login hand-off: play a one-time blur-to-sharp reveal.
   const [entering, setEntering] = useState(isSignInTransitionPending);
   useEffect(() => {
@@ -286,6 +331,7 @@ export function AppShell({ role, sectorSlug, children }: { role: Role; sectorSlu
   ];
 
   const switchRole = (r: Role) => {
+    setCurrentRole(r);
     if (r === "admin") navigate({ to: "/admin" });
     else if (r === "manager") {
       const target = sectors.find((s) => s.slug === managerSector)?.slug ?? sectors[0]?.slug;
@@ -327,8 +373,12 @@ export function AppShell({ role, sectorSlug, children }: { role: Role; sectorSlu
         className="no-print sticky top-0 z-40 px-3 pt-2.5 sm:px-4 md:px-6 md:pt-3"
       >
         <div className="glass-strong mx-auto flex h-16 max-w-[1440px] items-center gap-2 rounded-2xl px-3 md:gap-3 md:px-4">
-          <button className="rounded-lg p-2 text-muted-foreground hover:bg-accent lg:hidden" onClick={() => setMobileOpen(true)} aria-label="Open menu">
-            <MenuIcon className="size-5" />
+          <button
+            className="glass-inset grid size-11 shrink-0 place-items-center rounded-xl text-foreground hover:bg-accent transition-colors"
+            onClick={() => setAestheticMenuOpen(true)}
+            aria-label="Open menu"
+          >
+            <MoreVertical className="size-5 text-muted-foreground hover:text-foreground" />
           </button>
           <Logo />
 
@@ -493,6 +543,10 @@ export function AppShell({ role, sectorSlug, children }: { role: Role; sectorSlu
             <NavList role={role} sectorSlug={slug} />
           </motion.div>
         </aside>
+
+        {/* Tablet Slim Navigation Rail (768px - 1023px) */}
+        <TabletNavRail role={role} sectorSlug={slug} />
+
         <main className="min-w-0 flex-1">
           <motion.div
             key={pathname}
@@ -506,81 +560,14 @@ export function AppShell({ role, sectorSlug, children }: { role: Role; sectorSlu
         </main>
       </div>
 
-      <Dialog.Root open={mobileOpen} onOpenChange={setMobileOpen}>
-        <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 z-50 bg-background/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=open]:fade-in-0" />
-          <Dialog.Content className="glass-strong fixed inset-y-2 left-2 z-50 w-72 overflow-y-auto rounded-2xl p-4 outline-none data-[state=open]:animate-in data-[state=open]:slide-in-from-left">
-            <div className="mb-4 flex items-center justify-between">
-              <Dialog.Title asChild>
-                <div>
-                  <Logo />
-                </div>
-              </Dialog.Title>
-              <Dialog.Description className="sr-only">Navigation</Dialog.Description>
-              <Dialog.Close className="rounded-lg p-1.5 text-muted-foreground hover:bg-accent" aria-label="Close menu">
-                <X className="size-4" />
-              </Dialog.Close>
-            </div>
-
-            {/* Mobile College Workspace Switcher */}
-            <div className="mb-4">
-              <div className="px-1 pb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-subtle">College Workspace</div>
-              <KMenu
-                label="Switch college workspace"
-                trigger={
-                  <button className="glass-inset flex h-10 w-full items-center justify-between gap-2 px-3 text-xs text-foreground hover:bg-accent">
-                    <div className="flex items-center gap-2 truncate">
-                      <Building2 className="size-3.5 shrink-0 text-primary" />
-                      <span className="truncate font-medium">{college.name}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      {college.demo ? (
-                        <span className="rounded bg-white/10 px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-muted-foreground">Demo</span>
-                      ) : (
-                        <span className="size-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />
-                      )}
-                      <ChevronDown className="size-3 text-muted-foreground" />
-                    </div>
-                  </button>
-                }
-              >
-                <div className="px-3 py-1.5 text-[10px] uppercase tracking-wider text-subtle">College Workspaces</div>
-                {organizations.map((org) => (
-                  <KMenuItem
-                    key={org.id}
-                    onSelect={() => {
-                      if (org.id !== college.id) {
-                        switchOrg(org.id);
-                        toast.success(`Switched to ${org.name}`);
-                        setMobileOpen(false);
-                        navigate({ to: "/admin" });
-                      }
-                    }}
-                    active={org.id === college.id}
-                  >
-                    <Building2 className="size-4" />
-                    <span className="flex-1 truncate">{org.name}</span>
-                    {org.demo && <span className="ml-1 text-[10px] text-muted-foreground">(Demo)</span>}
-                    {org.id === college.id && <Check className="size-4 text-primary" />}
-                  </KMenuItem>
-                ))}
-                <div className="my-1 border-t border-border/40" />
-                <KMenuItem
-                  onSelect={() => {
-                    setMobileOpen(false);
-                    setNewOrgOpen(true);
-                  }}
-                >
-                  <Plus className="size-4 text-primary" />
-                  <span className="font-medium text-primary">New Organisation…</span>
-                </KMenuItem>
-              </KMenu>
-            </div>
-            <ContextCard role={role} sectorSlug={slug} />
-            <NavList role={role} sectorSlug={slug} onNavigate={() => setMobileOpen(false)} />
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog.Root>
+      {/* Aesthetic Menu (Glass Bottom Sheet on Mobile, Floating Popover on Tablet/Desktop) */}
+      <AestheticMenu
+        open={aestheticMenuOpen}
+        onOpenChange={setAestheticMenuOpen}
+        role={role}
+        sectorSlug={slug}
+        onOpenNewOrg={() => setNewOrgOpen(true)}
+      />
 
       {/* Create New Organisation Dialog */}
       <Dialog.Root open={newOrgOpen} onOpenChange={setNewOrgOpen}>
@@ -721,12 +708,12 @@ export function AppShell({ role, sectorSlug, children }: { role: Role; sectorSlu
         onOpenChange={setGlobalStudentOpen}
       />
 
-      {/* Modern Floating Frosted Bottom Navigation Bar (as shown in responsive in mobile video) */}
+      {/* Modern Floating Frosted Bottom Navigation Bar */}
       <MobileBottomNav
         role={role}
         sectorSlug={slug}
-        onOpenMenu={() => setMobileOpen(true)}
-        onQuickAction={() => setQuickActionOpen(true)}
+        quickActionOpen={quickActionOpen}
+        onQuickAction={() => setQuickActionOpen((prev) => !prev)}
       />
     </div>
   );
@@ -747,12 +734,12 @@ interface MobileNavItem {
 function MobileBottomNav({
   role,
   sectorSlug,
-  onOpenMenu,
+  quickActionOpen,
   onQuickAction,
 }: {
   role: Role;
   sectorSlug: SectorSlug;
-  onOpenMenu: () => void;
+  quickActionOpen: boolean;
   onQuickAction: () => void;
 }) {
   const { pathname } = useLocation();
@@ -794,11 +781,11 @@ function MobileBottomNav({
         isActive: pathname.startsWith("/admin/sectors"),
       },
       {
-        id: "menu",
-        label: "More",
-        icon: MenuIcon,
-        onClick: onOpenMenu,
-        isActive: false,
+        id: "admins",
+        label: "Admins",
+        icon: UserCog,
+        to: "/admin/admins",
+        isActive: pathname.startsWith("/admin/admins"),
       },
     ];
   } else if (role === "manager") {
@@ -836,11 +823,12 @@ function MobileBottomNav({
         isActive: pathname.includes("/reports"),
       },
       {
-        id: "menu",
-        label: "More",
-        icon: MenuIcon,
-        onClick: onOpenMenu,
-        isActive: false,
+        id: "batches",
+        label: "Batches",
+        icon: FileSpreadsheet,
+        to: "/m/$sectorSlug/batches",
+        params: { sectorSlug },
+        isActive: pathname.includes("/batches"),
       },
     ];
   } else {
@@ -875,20 +863,13 @@ function MobileBottomNav({
         to: "/app/profile",
         isActive: pathname.startsWith("/app/profile"),
       },
-      {
-        id: "menu",
-        label: "More",
-        icon: MenuIcon,
-        onClick: onOpenMenu,
-        isActive: false,
-      },
     ];
   }
 
   return (
     <nav
       aria-label="Mobile Navigation Bar"
-      className="no-print fixed bottom-3 inset-x-3.5 z-40 mx-auto max-w-md lg:hidden"
+      className="no-print fixed bottom-3 inset-x-3.5 z-40 mx-auto max-w-md md:hidden"
     >
       <div className="glass-strong rounded-2xl p-1.5 shadow-[0_14px_45px_rgba(0,0,0,0.18),0_2px_10px_rgba(0,0,0,0.06)] border border-white/70 dark:border-white/10 backdrop-blur-2xl">
         <div className="relative flex items-center justify-around gap-0.5">
@@ -901,10 +882,16 @@ function MobileBottomNav({
                   whileHover={{ scale: 1.08 }}
                   type="button"
                   onClick={item.onClick}
-                  aria-label={item.label}
+                  aria-label={quickActionOpen ? "Close actions" : item.label}
                   className="relative -mt-5 flex size-12 shrink-0 items-center justify-center rounded-full bg-gradient-primary text-primary-foreground shadow-glow border-2 border-background/90 transition-transform focus:outline-none"
                 >
-                  <Plus className="size-6 stroke-[2.5]" />
+                  <motion.div
+                    animate={{ rotate: quickActionOpen ? 45 : 0 }}
+                    transition={{ duration: 0.25, ease: "easeInOut" }}
+                    className="flex items-center justify-center"
+                  >
+                    <Plus className="size-6 stroke-[2.5]" />
+                  </motion.div>
                 </motion.button>
               );
             }

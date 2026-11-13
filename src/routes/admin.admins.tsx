@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { Check, Clock, Download, FileSpreadsheet, Mail, Phone, Plus, Settings2, ShieldCheck, UploadCloud, UserPlus } from "lucide-react";
+import { Check, Clock, Download, FileSpreadsheet, Mail, Pencil, Phone, Plus, Settings2, ShieldCheck, Trash2, UploadCloud, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Btn } from "@/components/khazna/btn";
@@ -83,7 +83,13 @@ function AdminsPage() {
                   <Phone className="size-3" /> {m.phone}
                 </div>
               </div>
-              {m.status === "active" ? <Chip tone="credit">Active</Chip> : <Chip tone="primary">Invited</Chip>}
+              {m.status === "active" ? (
+                <Chip tone="credit">Active</Chip>
+              ) : m.status === "inactive" ? (
+                <Chip tone="neutral">Inactive</Chip>
+              ) : (
+                <Chip tone="primary">Invited</Chip>
+              )}
             </div>
             <div className="mt-4 flex min-h-[2rem] flex-wrap gap-1.5">
               {m.sectors.length === 0 && <span className="text-xs text-subtle">No sectors assigned</span>}
@@ -103,7 +109,7 @@ function AdminsPage() {
                 <Clock className="size-3" /> {m.status === "invited" ? "Invite pending" : `Active ${timeAgo(m.lastActive)}`}
               </span>
               <Btn variant="soft" size="sm" onClick={() => setEditing(m)}>
-                <Settings2 /> Assign sectors
+                <Pencil className="size-3.5" /> Edit details
               </Btn>
             </div>
           </motion.div>
@@ -114,7 +120,7 @@ function AdminsPage() {
         </button>
       </div>
 
-      <AssignDrawer manager={editing} onClose={() => setEditing(null)} />
+      <EditManagerDrawer manager={editing} onClose={() => setEditing(null)} />
       <InviteDrawer open={inviting} onOpenChange={setInviting} />
       <BulkManagersDrawer open={bulk} onOpenChange={setBulk} />
     </div>
@@ -151,14 +157,52 @@ function SectorPicker({ value, onChange }: { value: SectorSlug[]; onChange: (v: 
   );
 }
 
-function AssignDrawer({ manager, onClose }: { manager: Manager | null; onClose: () => void }) {
+function EditManagerDrawer({ manager, onClose }: { manager: Manager | null; onClose: () => void }) {
   const assign = useKhazna((s) => s.assignSectors);
+  const editManager = useKhazna((s) => s.editManager);
+  const deleteManager = useKhazna((s) => s.deleteManager);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [status, setStatus] = useState<"active" | "inactive" | "invited">("active");
   const [sel, setSel] = useState<SectorSlug[]>([]);
   const [forId, setForId] = useState<string | null>(null);
+
   if (manager && forId !== manager.id) {
     setForId(manager.id);
+    setName(manager.name);
+    setEmail(manager.email);
+    setPhone(manager.phone);
+    setStatus(manager.status);
     setSel(manager.sectors);
   }
+
+  const handleSave = () => {
+    if (!manager) return;
+    if (!name.trim()) {
+      toast.error("Please enter a manager name.");
+      return;
+    }
+    editManager(manager.id, {
+      name: name.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
+      status,
+    });
+    assign(manager.id, sel);
+    toast.success("Manager details and access updated");
+    onClose();
+    setForId(null);
+  };
+
+  const handleDelete = () => {
+    if (!manager) return;
+    deleteManager(manager.id);
+    toast.success(`Removed manager ${manager.name}`);
+    onClose();
+    setForId(null);
+  };
+
   return (
     <KDrawer
       open={!!manager}
@@ -168,29 +212,77 @@ function AssignDrawer({ manager, onClose }: { manager: Manager | null; onClose: 
           setForId(null);
         }
       }}
-      title={manager ? `Sector access · ${manager.name}` : "Sector access"}
-      description="Changes are written to the audit log."
+      title={manager ? `Edit Manager · ${manager.name}` : "Edit Manager"}
+      description="Update manager profile, status, and sector permissions."
       footer={
-        <>
-          <Btn variant="ghost" onClick={onClose}>
-            Cancel
+        <div className="flex w-full items-center justify-between">
+          <Btn variant="danger" size="sm" onClick={handleDelete}>
+            <Trash2 className="size-3.5" /> Remove
           </Btn>
-          <Btn
-            variant="primary"
-            onClick={() => {
-              if (!manager) return;
-              assign(manager.id, sel);
-              toast.success("Sector access updated", { description: `${manager.name} · ${sel.length} sector${sel.length === 1 ? "" : "s"}` });
-              onClose();
-              setForId(null);
-            }}
-          >
-            <Check /> Save access
-          </Btn>
-        </>
+          <div className="flex gap-2">
+            <Btn variant="ghost" onClick={onClose}>
+              Cancel
+            </Btn>
+            <Btn variant="primary" onClick={handleSave}>
+              <Check /> Save Changes
+            </Btn>
+          </div>
+        </div>
       }
     >
-      <SectorPicker value={sel} onChange={setSel} />
+      <div className="space-y-4">
+        <div>
+          <label className="mb-1 block text-xs font-medium text-subtle">Full Name</label>
+          <input
+            type="text"
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full rounded-xl border border-glass-border bg-accent/40 px-3 py-2 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-medium text-subtle">Email Address</label>
+          <input
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full rounded-xl border border-glass-border bg-accent/40 px-3 py-2 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-medium text-subtle">Phone Number</label>
+          <input
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className="w-full rounded-xl border border-glass-border bg-accent/40 px-3 py-2 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-medium text-subtle">Account Status</label>
+          <div className="flex rounded-xl border border-glass-border bg-accent/40 p-1 gap-1">
+            {(["active", "inactive", "invited"] as const).map((st) => (
+              <button
+                key={st}
+                type="button"
+                onClick={() => setStatus(st)}
+                className={cn(
+                  "flex-1 rounded-lg py-1.5 text-xs font-semibold capitalize transition-all",
+                  status === st ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {st}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <label className="mb-2 block text-xs font-medium text-subtle">Assigned Sector Ledgers</label>
+          <SectorPicker value={sel} onChange={setSel} />
+        </div>
+      </div>
     </KDrawer>
   );
 }

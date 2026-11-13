@@ -101,7 +101,10 @@ function LoginPage() {
         : r === "manager"
           ? { to: "/m/$sectorSlug", params: { sectorSlug: DEFAULT_MANAGER_SECTOR } }
           : { to: "/app" };
-    go(dest, `Demo opened as ${DEMO[r].label}`, () => store.getState().loadDemo());
+    go(dest, `Demo opened as ${DEMO[r].label}`, () => {
+      store.getState().loadDemo();
+      store.getState().setCurrentRole(r);
+    });
   };
 
   const submit = (e: FormEvent) => {
@@ -114,37 +117,44 @@ function LoginPage() {
       if (!/^\S+@\S+\.\S+$/.test(su.email)) return setError("Enter a valid email address.");
       if (su.password.length < 8) return setError("Password must be at least 8 characters.");
       if (su.password !== su.confirm) return setError("Passwords don't match.");
-      go({ to: "/admin" }, `${su.college.trim()} is ready — start by adding sectors`, () =>
+      go({ to: "/admin" }, `${su.college.trim()} is ready — start by adding sectors`, () => {
         st.signUpCollege({
           college: su.college.trim(),
           name: su.name.trim(),
           email: su.email,
           password: su.password,
-        }),
-      );
+        });
+        st.setCurrentRole("admin");
+      });
       return;
     }
     const id = user.trim();
     if (role === "student") {
       const s = st.students.find((x) => x.id.toLowerCase() === id.toLowerCase());
       if (!s) return setError("No student found with that admission number.");
-      go({ to: "/app" }, `Welcome, ${s.name}`, () => st.setMeStudent(s.id));
+      go({ to: "/app" }, `Welcome, ${s.name}`, () => {
+        st.setMeStudent(s.id);
+        st.setCurrentRole("student");
+      });
       return;
     }
     if (!id || pass.length < 6) return setError("Enter your email and password.");
     if (role === "admin") {
       if (id.toLowerCase() !== st.college.adminEmail.toLowerCase() || pass !== st.college.password)
         return setError("Email or password is incorrect.");
-      go({ to: "/admin" }, `Welcome back, ${st.college.adminName}`);
+      go({ to: "/admin" }, `Welcome back, ${st.college.adminName}`, () => {
+        st.setCurrentRole("admin");
+      });
       return;
     }
     const m = st.managers.find((x) => x.email.toLowerCase() === id.toLowerCase());
     if (!m) return setError("No sector manager with that email. Ask your Super Admin to add you.");
     const sector = m.sectors.find((x) => st.sectors.some((s) => s.slug === x));
     if (!sector) return setError("You haven't been assigned a sector yet.");
-    go({ to: "/m/$sectorSlug", params: { sectorSlug: sector } }, `Welcome back, ${m.name}`, () =>
-      st.setManagerSector(sector),
-    );
+    go({ to: "/m/$sectorSlug", params: { sectorSlug: sector } }, `Welcome back, ${m.name}`, () => {
+      st.setManagerSector(sector);
+      st.setCurrentRole("manager");
+    });
   };
 
   return (

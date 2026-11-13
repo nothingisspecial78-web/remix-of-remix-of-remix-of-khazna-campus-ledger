@@ -1,6 +1,7 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
-import { Ban, ChevronDown, FileSpreadsheet, Layers, Plus } from "lucide-react";
+import { Ban, ChevronDown, FileSpreadsheet, Layers, Pencil, Plus, Trash2, X } from "lucide-react";
+import * as Dialog from "@radix-ui/react-dialog";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Btn } from "@/components/khazna/btn";
@@ -34,15 +35,46 @@ function BatchesPage() {
   const batches = useMemo(() => allBatches.filter((b) => b.sector === slug), [allBatches, slug]);
   const students = useKhazna((s) => s.students);
   const voidBatch = useKhazna((s) => s.voidBatch);
+  const editBatch = useKhazna((s) => s.editBatch);
+  const deleteBatch = useKhazna((s) => s.deleteBatch);
   const [open, setOpen] = useState<string | null>(null);
   const [voiding, setVoiding] = useState<Batch | null>(null);
+  const [editing, setEditing] = useState<Batch | null>(null);
+  const [deleting, setDeleting] = useState<Batch | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDate, setEditDate] = useState("");
+
+  const startEdit = (b: Batch) => {
+    setEditing(b);
+    setEditTitle(b.title);
+    setEditDate(b.date);
+  };
+
+  const handleSaveEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editing) return;
+    if (!editTitle.trim()) {
+      toast.error("Please enter a batch title.");
+      return;
+    }
+    editBatch(editing.id, { title: editTitle.trim(), date: editDate });
+    toast.success("Batch updated successfully");
+    setEditing(null);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deleting) return;
+    deleteBatch(deleting.id);
+    toast.success(`Batch ${deleting.id} deleted`);
+    setDeleting(null);
+  };
 
   return (
     <div>
       <PageHeader
         eyebrow={`${sector.name} · Batches`}
         title="Batch history"
-        description="Every bulk posting, grouped. Voiding a batch voids all of its entries in one step."
+        description="Every bulk posting, grouped. Edit batch titles or void entries in one step."
         actions={
           <Btn asChild variant="primary">
             <Link to="/m/$sectorSlug/bulk" params={{ sectorSlug: slug }}>
@@ -81,13 +113,22 @@ function BatchesPage() {
                     </div>
                     <ChevronDown className={cn("size-4 shrink-0 text-subtle transition-transform", expanded && "rotate-180")} />
                   </button>
-                  <div className="flex items-center justify-between gap-4 md:justify-end">
-                    <div className={cn("text-right font-display text-lg font-semibold", b.voided && "line-through")}>
+                  <div className="flex items-center justify-between gap-2 md:justify-end">
+                    <div className={cn("text-right font-display text-lg font-semibold pr-2", b.voided && "line-through")}>
                       <Amount value={total} type={b.type} />
                     </div>
-                    {!b.voided && (
-                      <Btn variant="danger" size="sm" onClick={() => setVoiding(b)}>
-                        <Ban /> Void batch
+                    {!b.voided ? (
+                      <>
+                        <Btn variant="soft" size="sm" onClick={() => startEdit(b)}>
+                          <Pencil className="size-3.5" /> Edit
+                        </Btn>
+                        <Btn variant="danger" size="sm" onClick={() => setVoiding(b)}>
+                          <Ban className="size-3.5" /> Void
+                        </Btn>
+                      </>
+                    ) : (
+                      <Btn variant="danger" size="sm" onClick={() => setDeleting(b)}>
+                        <Trash2 className="size-3.5" /> Delete
                       </Btn>
                     )}
                   </div>
@@ -121,6 +162,116 @@ function BatchesPage() {
           })}
         </div>
       )}
+
+      {/* Edit Batch Dialog */}
+      <Dialog.Root open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-50 bg-background/60 backdrop-blur-sm" />
+          <Dialog.Content className="glass-strong fixed left-1/2 top-1/2 z-50 w-[92vw] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-3xl p-5 shadow-2xl border border-white/70 dark:border-white/10 outline-none">
+            <div className="flex items-center justify-between pb-3 border-b border-hairline">
+              <div className="flex items-center gap-2.5">
+                <div className="grid size-9 place-items-center rounded-xl bg-primary/10 text-primary">
+                  <Pencil className="size-4" />
+                </div>
+                <div>
+                  <Dialog.Title className="text-base font-semibold text-foreground">
+                    Edit Batch
+                  </Dialog.Title>
+                  <Dialog.Description className="text-xs text-muted-foreground">
+                    Batch {editing?.id}
+                  </Dialog.Description>
+                </div>
+              </div>
+              <Dialog.Close className="grid size-8 place-items-center rounded-full text-muted-foreground hover:bg-accent">
+                <X className="size-4" />
+              </Dialog.Close>
+            </div>
+
+            <form onSubmit={handleSaveEdit} className="mt-4 space-y-4">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-subtle">
+                  Batch Title
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="w-full rounded-xl border border-glass-border bg-accent/40 px-3 py-2 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-medium text-subtle">
+                  Posting Date
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={editDate}
+                  onChange={(e) => setEditDate(e.target.value)}
+                  className="w-full rounded-xl border border-glass-border bg-accent/40 px-3 py-2 text-sm text-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditing(null)}
+                  className="rounded-xl px-4 py-2 text-xs font-medium text-muted-foreground hover:bg-accent"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-xl bg-gradient-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-glow hover:opacity-95"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+
+      {/* Delete Batch Dialog */}
+      <Dialog.Root open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-50 bg-background/60 backdrop-blur-sm" />
+          <Dialog.Content className="glass-strong fixed left-1/2 top-1/2 z-50 w-[90vw] max-w-sm -translate-x-1/2 -translate-y-1/2 rounded-3xl p-5 shadow-2xl border border-white/70 dark:border-white/10 outline-none">
+            <div className="flex items-center gap-3">
+              <div className="grid size-10 shrink-0 place-items-center rounded-2xl bg-rose-500/15 text-rose-500">
+                <Trash2 className="size-5" />
+              </div>
+              <div>
+                <Dialog.Title className="text-base font-semibold text-foreground">
+                  Delete Batch?
+                </Dialog.Title>
+                <Dialog.Description className="text-xs text-muted-foreground">
+                  Permanently remove batch {deleting?.id} and all its entries.
+                </Dialog.Description>
+              </div>
+            </div>
+
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setDeleting(null)}
+                className="rounded-xl px-4 py-2 text-xs font-medium text-muted-foreground hover:bg-accent"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="rounded-xl bg-rose-500 px-4 py-2 text-xs font-semibold text-white shadow-glow hover:bg-rose-600"
+              >
+                Delete Batch
+              </button>
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
 
       <VoidDialog
         open={!!voiding}

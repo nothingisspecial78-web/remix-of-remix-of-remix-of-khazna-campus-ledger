@@ -31,4 +31,55 @@ describe("student account actions", () => {
     useKhazna.getState().updatePhone("S0125", "9000011111");
     expect(useKhazna.getState().students.find((s) => s.id === "S0125")!.phone).toBe("9000011111");
   });
+
+  it("editBatch updates batch title and date on both batch and its transactions", () => {
+    const st = useKhazna.getState();
+    const batch = st.batches[0];
+    if (batch) {
+      st.editBatch(batch.id, { title: "Updated Study Tour", date: "2026-11-20" });
+      const updated = useKhazna.getState().batches.find((b) => b.id === batch.id)!;
+      expect(updated.title).toBe("Updated Study Tour");
+      expect(updated.date).toBe("2026-11-20");
+
+      const relatedTx = useKhazna.getState().transactions.filter((t) => t.batchId === batch.id);
+      for (const t of relatedTx) {
+        expect(t.title).toBe("Updated Study Tour");
+        expect(t.date).toBe("2026-11-20");
+      }
+    }
+  });
+
+  it("deleteBatch removes batch and its transactions", () => {
+    const st = useKhazna.getState();
+    const batch = st.batches[0];
+    if (batch) {
+      st.deleteBatch(batch.id);
+      expect(useKhazna.getState().batches.some((b) => b.id === batch.id)).toBe(false);
+      expect(useKhazna.getState().transactions.some((t) => t.batchId === batch.id)).toBe(false);
+    }
+  });
+
+  it("editManager, toggleManagerStatus, and deleteManager work as expected", () => {
+    const st = useKhazna.getState();
+    const mgr = st.managers[0];
+    if (mgr) {
+      st.editManager(mgr.id, { name: "Updated Manager Name" });
+      expect(useKhazna.getState().managers.find((m) => m.id === mgr.id)!.name).toBe("Updated Manager Name");
+
+      st.toggleManagerStatus(mgr.id);
+      expect(useKhazna.getState().managers.find((m) => m.id === mgr.id)!.status).toBe(
+        mgr.status === "active" ? "inactive" : "active"
+      );
+
+      st.deleteManager(mgr.id);
+      expect(useKhazna.getState().managers.some((m) => m.id === mgr.id)).toBe(false);
+    }
+  });
+
+  it("setCurrentRole updates currentRole", () => {
+    useKhazna.getState().setCurrentRole("admin");
+    expect(useKhazna.getState().currentRole).toBe("admin");
+    useKhazna.getState().setCurrentRole("manager");
+    expect(useKhazna.getState().currentRole).toBe("manager");
+  });
 });

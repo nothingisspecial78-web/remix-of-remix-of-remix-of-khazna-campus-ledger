@@ -1,10 +1,16 @@
-import { Outlet, createFileRoute, notFound } from "@tanstack/react-router";
+import { Outlet, createFileRoute, notFound, redirect } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { AppShell } from "@/components/khazna/AppShell";
 import { useKhazna } from "@/lib/khazna/store";
 
 export const Route = createFileRoute("/m/$sectorSlug")({
   beforeLoad: ({ params }) => {
+    const role = useKhazna.getState().currentRole;
+    if (role === "admin") {
+      throw redirect({ to: "/admin" });
+    } else if (role === "student") {
+      throw redirect({ to: "/app" });
+    }
     if (!useKhazna.getState().sectors.some((s) => s.slug === params.sectorSlug)) throw notFound();
   },
   component: ManagerLayout,
