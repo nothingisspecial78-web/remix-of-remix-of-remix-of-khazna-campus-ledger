@@ -148,7 +148,7 @@ function LoginPage() {
   };
 
   return (
-    <div className="relative grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
+    <div className="relative grid min-h-dvh overflow-x-hidden lg:min-h-screen lg:grid-cols-[1.1fr_1fr]">
       {/* Brand side */}
       <motion.div
         initial={false}
@@ -227,7 +227,7 @@ function LoginPage() {
       </motion.div>
 
       {/* Form side */}
-      <div className="flex items-center justify-center p-4 sm:p-8">
+      <div className="flex min-h-dvh flex-col items-center justify-center p-2.5 sm:p-6 md:p-8 lg:min-h-screen">
         <motion.div
           initial={{ opacity: 0, scale: 0.97, y: 16 }}
           animate={
@@ -241,15 +241,15 @@ function LoginPage() {
               : { duration: 0.5, ease: [0.22, 1, 0.36, 1] }
           }
           className={cn(
-            "glass w-full max-w-md p-6 sm:p-8 transition-shadow duration-500",
+            "glass my-auto w-full max-w-md p-3.5 transition-shadow duration-500 sm:p-6 md:p-8",
             phase !== "idle" && "shadow-glow",
           )}
           aria-busy={phase !== "idle"}
         >
-          <div className="mb-6 lg:hidden">
+          <div className="mb-2.5 sm:mb-6 lg:hidden">
             <Logo />
           </div>
-          <div className="grid grid-cols-2 gap-1 rounded-xl border border-hairline bg-accent p-1">
+          <div className="grid grid-cols-2 gap-1 rounded-xl border border-hairline bg-accent p-0.5 sm:p-1">
             {(["signin", "signup"] as const).map((m) => (
               <button
                 key={m}
@@ -259,7 +259,7 @@ function LoginPage() {
                   setError("");
                 }}
                 className={cn(
-                  "relative rounded-lg py-2 text-sm font-medium transition-colors",
+                  "relative rounded-lg py-1.5 text-xs font-medium transition-colors sm:py-2 sm:text-sm",
                   mode === m ? "text-foreground" : "text-muted-foreground hover:text-foreground",
                 )}
               >
@@ -278,27 +278,27 @@ function LoginPage() {
           <AnimatePresence mode="popLayout" initial={false}>
               <motion.div
                 key={mode}
-                className="relative min-h-[387px]"
+                className="relative min-h-0 sm:min-h-[360px]"
                 variants={PANEL_SWAP}
                 initial="hidden"
                 animate="show"
                 exit="exit"
               >
               <motion.div variants={PANEL_SWAP_ITEM}>
-                <h2 className="mt-6 text-2xl font-semibold text-foreground">
+                <h2 className="mt-2 text-lg font-semibold text-foreground sm:mt-5 sm:text-2xl">
                   {mode === "signin" ? "Welcome back" : "Set up your college"}
                 </h2>
-                <p className="mt-1 text-sm text-muted-foreground">
+                <p className="mt-0.5 text-xs text-muted-foreground sm:mt-1 sm:text-sm">
                   {mode === "signin"
                     ? "Choose who you are and sign in."
                     : "Create the Super Admin account. You'll add sectors, managers and students next."}
                 </p>
               </motion.div>
 
-              <form onSubmit={submit} className="mt-6 space-y-4">
+              <form onSubmit={submit} className="mt-2.5 space-y-2.5 sm:mt-5 sm:space-y-4">
                 {mode === "signin" ? (
                   <>
-                    <motion.div variants={PANEL_SWAP_ITEM} className="grid grid-cols-3 gap-2">
+                    <motion.div variants={PANEL_SWAP_ITEM} className="grid grid-cols-3 gap-1.5 sm:gap-2">
                       {(Object.keys(DEMO) as Role[]).map((r) => {
                         const D = DEMO[r];
                         const active = r === role;
@@ -308,14 +308,14 @@ function LoginPage() {
                             type="button"
                             onClick={() => choose(r)}
                             className={cn(
-                              "flex flex-col items-center gap-1.5 rounded-xl border px-2 py-3 text-center transition-all",
+                              "flex flex-col items-center gap-1 rounded-xl border px-1.5 py-1.5 text-center transition-all sm:gap-1.5 sm:px-2 sm:py-3",
                               active
                                 ? "border-primary/50 bg-primary/10 text-foreground shadow-glow"
                                 : "border-hairline bg-accent text-muted-foreground hover:text-foreground",
                             )}
                           >
-                            <D.icon className={cn("size-5", active && "text-primary")} />
-                            <span className="text-xs font-medium">{D.label}</span>
+                            <D.icon className={cn("size-4 sm:size-5", active && "text-primary")} />
+                            <span className="text-[11px] font-medium sm:text-xs">{D.label}</span>
                           </button>
                         );
                       })}
@@ -323,7 +323,7 @@ function LoginPage() {
                     <AnimatePresence mode="popLayout" initial={false}>
                       <motion.div
                         key={role}
-                        className="space-y-4"
+                        className="space-y-2 sm:space-y-4"
                         variants={PANEL_SWAP}
                         initial="hidden"
                         animate="show"
@@ -394,7 +394,7 @@ function LoginPage() {
                   </>
                 ) : (
                   <>
-                    <motion.div variants={PANEL_SWAP_ITEM} className="grid gap-4 sm:grid-cols-2">
+                    <motion.div variants={PANEL_SWAP_ITEM} className="grid gap-2 sm:grid-cols-2 sm:gap-4">
                       <Field label="College name">
                         <div className="relative">
                           <Building2 className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-subtle" />
@@ -433,7 +433,7 @@ function LoginPage() {
                         </div>
                       </Field>
                     </motion.div>
-                    <motion.div variants={PANEL_SWAP_ITEM} className="grid gap-4 sm:grid-cols-2">
+                    <motion.div variants={PANEL_SWAP_ITEM} className="grid gap-2 sm:grid-cols-2 sm:gap-4">
                       <Field label="Password">
                         <input
                           value={su.password}
@@ -491,9 +491,9 @@ function LoginPage() {
                   <Btn
                     type="submit"
                     variant="primary"
-                    size="lg"
+                    size="md"
                     className={cn(
-                      "relative w-full overflow-hidden",
+                      "relative h-10 w-full overflow-hidden text-sm sm:h-12 sm:text-base",
                       phase !== "idle" && "brightness-110",
                     )}
                   >
@@ -538,12 +538,12 @@ function LoginPage() {
             </motion.div>
           </AnimatePresence>
 
-          <div className="mt-6 border-t border-hairline pt-5">
-            <div className="mb-3 flex items-center gap-2 text-xs font-medium text-muted-foreground">
-              <PlayCircle className="size-4 text-primary" /> Try the demo — sample college, no
+          <div className="mt-2.5 border-t border-hairline pt-2.5 sm:mt-6 sm:pt-5">
+            <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground sm:mb-3 sm:gap-2 sm:text-xs">
+              <PlayCircle className="size-3.5 text-primary sm:size-4" /> Try the demo — sample college, no
               sign-up
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
               {(Object.keys(DEMO) as Role[]).map((r) => {
                 const D = DEMO[r];
                 return (
@@ -551,17 +551,17 @@ function LoginPage() {
                     key={r}
                     type="button"
                     onClick={() => tryDemo(r)}
-                    className="hover-lift flex flex-col items-center gap-1 rounded-xl border border-hairline bg-accent px-2 py-2.5 text-center text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+                    className="hover-lift flex flex-col items-center gap-0.5 rounded-xl border border-hairline bg-accent px-1.5 py-1.5 text-center text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground sm:gap-1 sm:px-2 sm:py-2.5"
                   >
-                    <D.icon className="size-4" />
-                    <span className="text-[11px] font-medium">{D.label}</span>
-                    <span className="text-[10px] leading-tight text-subtle">{D.hint}</span>
+                    <D.icon className="size-3.5 sm:size-4" />
+                    <span className="text-[10px] font-medium sm:text-[11px]">{D.label}</span>
+                    <span className="hidden text-[10px] leading-tight text-subtle sm:block">{D.hint}</span>
                   </button>
                 );
               })}
             </div>
           </div>
-          <p className="mt-5 text-center text-[11px] text-subtle">
+          <p className="mt-2 text-center text-[10px] text-subtle sm:mt-5 sm:text-[11px]">
             Preview · everything is kept in this browser tab and resets on refresh.
           </p>
         </motion.div>
@@ -571,7 +571,7 @@ function LoginPage() {
         {leaving && (
           <motion.div
             aria-hidden
-            className="pointer-events-none fixed inset-0 z-50 grid place-items-center"
+            className="pointer-events-none fixed inset-0 z-50 grid place-items-center overflow-hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, ease: "easeOut" }}
