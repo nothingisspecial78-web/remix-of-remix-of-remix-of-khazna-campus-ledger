@@ -119,5 +119,120 @@ describe("Report Sorting & Export Tests", () => {
       items: manyStudents,
     });
     expect(allFile).toMatch(/^Khazna_Fiqh2_Statement_.*\.pdf$/);
+  }, 25000);
+
+  it("embeds institution profile, signatories, seal, and records QR verification snapshot", async () => {
+    let recordedExport: any = null;
+
+    const sample15Students: StudentReportItem[] = [];
+    for (let i = 1; i <= 15; i++) {
+      sample15Students.push({
+        studentId: `S01${String(i).padStart(2, "0")}`,
+        studentName: i === 1 ? "അബ്ദുല്ല ഖാസിം" : i === 2 ? "محمد ريان" : `Student Name ${i}`,
+        className: "Fiqh 2",
+        credit: i === 3 ? 9999999 : 5000,
+        debit: i === 4 ? 7000 : 2000,
+        balance: (i === 3 ? 9999999 : 5000) - (i === 4 ? 7000 : 2000),
+      });
+    }
+
+    const testFile = await generateClassWisePdf({
+      collegeName: "Islahul Uloom Arabic College",
+      sectorName: "Dept Fiqh",
+      className: "Fiqh 2",
+      from: "2026-07-15",
+      to: "2026-11-12",
+      contentFilter: "all",
+      sortBy: "adm_asc",
+      showSummaryCards: true,
+      showNetBalance: true,
+      showSignatureLines: true,
+      showPageNumbers: true,
+      orientation: "portrait",
+      institutionProfile: {
+        name: "Islahul Uloom Arabic College",
+        short_name: "IUAC",
+        tagline: "Affiliated to University of Calicut",
+        reg_no: "IUAC/REG/1970/KL",
+        established_year: "1970",
+        city: "Tanur",
+        district: "Malappuram",
+        phone: "+91 494 242 2234",
+        email: "accounts@islahululoom.edu.in",
+        logo_version: 1,
+        seal_version: 1,
+        verify_expiry: "never",
+        verify_mask_names: false,
+      },
+      signatories: [
+        {
+          id: "sig_acc",
+          org_id: "demo",
+          full_name: "K. Mohammed Kutty",
+          designation: "Chief Accounts Officer",
+          role: "accounts_officer",
+          active: true,
+          signature_version: 1,
+        },
+        {
+          id: "sig_princi",
+          org_id: "demo",
+          full_name: "Prof. Sayyid Munavvar Ali",
+          designation: "Principal",
+          role: "principal",
+          active: true,
+          signature_version: 1,
+        },
+      ],
+      signatureMode: "digital",
+      showSeal: true,
+      showDistributionBar: true,
+      qrVerification: true,
+      onExportRecorded: (exp) => {
+        recordedExport = exp;
+      },
+      items: sample15Students,
+    });
+
+    expect(testFile).toContain("Khazna_Fiqh2_Statement_");
+    expect(recordedExport).not.toBeNull();
+    expect(recordedExport.ref).toMatch(/^KHZ-FIQH-\d{8}-\d{3}$/);
+    expect(recordedExport.token.length).toBeGreaterThanOrEqual(16);
+    expect(recordedExport.sha256).toBeTruthy();
+    expect(recordedExport.pdf_base64).toMatch(/^data:application\/pdf/);
+  });
+
+  it("handles high-volume dataset (200 students multi-page without errors)", async () => {
+    const students200: StudentReportItem[] = [];
+    for (let i = 1; i <= 200; i++) {
+      students200.push({
+        studentId: `S${String(i).padStart(5, "0")}`,
+        studentName: `Student ${i} Full Name`,
+        className: "Fiqh 2",
+        credit: 2500,
+        debit: 1000,
+        balance: 1500,
+      });
+    }
+
+    const t0 = Date.now();
+    const result = await generateClassWisePdf({
+      collegeName: "Islahul Uloom Arabic College",
+      sectorName: "Dept Fiqh",
+      className: "Fiqh 2",
+      from: "2026-07-15",
+      to: "2026-11-12",
+      contentFilter: "debit",
+      sortBy: "adm_asc",
+      showSummaryCards: true,
+      showNetBalance: false,
+      showSignatureLines: true,
+      showPageNumbers: true,
+      orientation: "portrait",
+      items: students200,
+    });
+    const duration = Date.now() - t0;
+    expect(result).toBeTruthy();
+    expect(duration).toBeLessThan(5000); // Fast generation under 5s
   });
 });

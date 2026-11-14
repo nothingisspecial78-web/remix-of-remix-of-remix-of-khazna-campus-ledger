@@ -2,7 +2,24 @@ import { create } from "zustand";
 import { AUDIT, BATCHES, CLASSES, DEFAULT_MANAGER_SECTOR, MANAGERS, ME_STUDENT_ID, NOTICES, SECTORS, STUDENTS, SUPER_ADMIN, TRANSACTIONS, managerNameFor } from "./data";
 import { NOW_ISO } from "./format";
 import { receiptSeries } from "./ledger";
-import type { AuditAction, AuditEntry, Batch, Manager, Notice, Role, Sector, SectorSlug, Student, Tx, TxType } from "./types";
+import type {
+  AuditAction,
+  AuditEntry,
+  Batch,
+  InstitutionProfile,
+  Manager,
+  Notice,
+  ReportExport,
+  Role,
+  Sector,
+  SectorSlug,
+  Signatory,
+  SignatoryRole,
+  SignatureSlotConfig,
+  Student,
+  Tx,
+  TxType,
+} from "./types";
 
 let seq = 1;
 const uid = (p: string) => `${p}${Date.now().toString(36).slice(-4).toUpperCase()}${seq++}`;
@@ -73,6 +90,111 @@ export type ManagerInput = Omit<Manager, "id" | "status" | "lastActive">;
 
 const slugify = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "sector";
 
+export const DEFAULT_SLOTS: SignatureSlotConfig = {
+  slot1: { label: "Prepared by", role: "accounts_officer" },
+  slot2: { label: "Verified by (HOD)", role: "hod" },
+  slot3: { label: "Approved by (Principal)", role: "principal" },
+};
+
+export const DEMO_INSTITUTION_PROFILE: InstitutionProfile = {
+  name: "Islahul Uloom Arabic College",
+  short_name: "IUAC",
+  tagline: "Affiliated to University of Calicut · Established 1970",
+  reg_no: "IUAC/REG/1970/KL",
+  established_year: "1970",
+  address_line1: "Islahul Uloom Campus, Post Box 12",
+  address_line2: "P.O. Tanur",
+  city: "Malappuram",
+  district: "Malappuram",
+  state: "Kerala",
+  pincode: "676302",
+  phone: "+91 494 242 2234",
+  email: "accounts@islahululoom.edu.in",
+  website: "https://islahululoom.edu.in",
+  logo_path: "/apple-touch-icon.png",
+  logo_version: 1,
+  seal_path: "",
+  seal_version: 1,
+  verify_expiry: "never",
+  verify_mask_names: false,
+};
+
+export const DEMO_SIGNATORIES: Signatory[] = [
+  {
+    id: "sig_accounts",
+    org_id: DEMO_ORG_ID,
+    full_name: "K. Mohammed Kutty",
+    designation: "Chief Accounts Officer",
+    role: "accounts_officer",
+    active: true,
+    signature_version: 1,
+    authorised_at: "2026-11-12T00:00:00.000Z",
+    authorised_by: "Abdulla K.",
+  },
+  {
+    id: "sig_hod_fiqh",
+    org_id: DEMO_ORG_ID,
+    full_name: "Dr. Hamza Saqafi",
+    designation: "Head of Department, Fiqh",
+    role: "hod",
+    sector_id: "fiqh",
+    active: true,
+    signature_version: 1,
+    authorised_at: "2026-11-12T00:00:00.000Z",
+    authorised_by: "Abdulla K.",
+  },
+  {
+    id: "sig_hod_civil",
+    org_id: DEMO_ORG_ID,
+    full_name: "Anees Rahman",
+    designation: "Head of Department, Civil",
+    role: "hod",
+    sector_id: "civil",
+    active: true,
+    signature_version: 1,
+    authorised_at: "2026-11-12T00:00:00.000Z",
+    authorised_by: "Abdulla K.",
+  },
+  {
+    id: "sig_principal",
+    org_id: DEMO_ORG_ID,
+    full_name: "Prof. Sayyid Munavvar Ali",
+    designation: "Principal & Head of Institution",
+    role: "principal",
+    active: true,
+    signature_version: 1,
+    authorised_at: "2026-11-12T00:00:00.000Z",
+    authorised_by: "Abdulla K.",
+  },
+];
+
+export function checkSignatoryUniqueness(
+  signatories: Signatory[],
+  candidate: { id?: string; role: SignatoryRole; sector_id?: string; class_id?: string; active: boolean }
+): { valid: boolean; error?: string } {
+  if (!candidate.active) return { valid: true };
+  const duplicate = signatories.find(
+    (s) =>
+      s.active &&
+      s.id !== candidate.id &&
+      s.role === candidate.role &&
+      (s.sector_id || "") === (candidate.sector_id || "") &&
+      (s.class_id || "") === (candidate.class_id || "")
+  );
+  if (duplicate) {
+    const scopeLabel = candidate.sector_id
+      ? ` for sector "${candidate.sector_id}"`
+      : candidate.class_id
+        ? ` for class "${candidate.class_id}"`
+        : "";
+    return {
+      valid: false,
+      error: `An active signatory (${duplicate.full_name}) already exists for role "${candidate.role}"${scopeLabel}. Deactivate or reassign them first.`,
+    };
+  }
+  return { valid: true };
+}
+
 export interface OrgStatePayload {
   college: College;
   sectors: Sector[];
@@ -85,6 +207,10 @@ export interface OrgStatePayload {
   notices: Notice[];
   meStudentId: string;
   managerSector: SectorSlug;
+  institutionProfile: InstitutionProfile;
+  signatories: Signatory[];
+  signatureSlots: SignatureSlotConfig;
+  reportExports: ReportExport[];
 }
 
 export const DEMO_STATE = (): OrgStatePayload => ({
@@ -99,6 +225,10 @@ export const DEMO_STATE = (): OrgStatePayload => ({
   notices: NOTICES,
   meStudentId: ME_STUDENT_ID,
   managerSector: DEFAULT_MANAGER_SECTOR,
+  institutionProfile: DEMO_INSTITUTION_PROFILE,
+  signatories: DEMO_SIGNATORIES,
+  signatureSlots: DEFAULT_SLOTS,
+  reportExports: [],
 });
 
 /** Create an isolated clean-slate dataset for a new organization (zero demo data). */
@@ -143,6 +273,22 @@ export const createEmptyOrgData = (input: { id?: string; name: string; adminName
     ],
     meStudentId: "",
     managerSector: "",
+    institutionProfile: {
+      name: input.name,
+      short_name: input.name
+        .split(" ")
+        .map((w) => w[0])
+        .join("")
+        .slice(0, 8)
+        .toUpperCase(),
+      logo_version: 1,
+      seal_version: 1,
+      verify_expiry: "never",
+      verify_mask_names: false,
+    },
+    signatories: [],
+    signatureSlots: DEFAULT_SLOTS,
+    reportExports: [],
   };
 };
 
@@ -188,7 +334,21 @@ const loadOrgData = (id: string): OrgStatePayload => {
       const raw = window.localStorage.getItem(storageOrgDataKey(id));
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (parsed && parsed.college) return parsed;
+        if (parsed && parsed.college) {
+          if (!parsed.institutionProfile) {
+            parsed.institutionProfile = {
+              name: parsed.college.name || "Organization",
+              logo_version: 1,
+              seal_version: 1,
+              verify_expiry: "never",
+              verify_mask_names: false,
+            };
+          }
+          if (!parsed.signatories) parsed.signatories = [];
+          if (!parsed.signatureSlots) parsed.signatureSlots = DEFAULT_SLOTS;
+          if (!parsed.reportExports) parsed.reportExports = [];
+          return parsed;
+        }
       }
     } catch (e) {
       console.warn(`Failed to read stored data for org ${id}`, e);
@@ -253,6 +413,17 @@ interface KhaznaState extends OrgStatePayload {
   updatePhone: (studentId: string, phone: string) => void;
   markRead: (id: string) => void;
   markAllRead: () => void;
+
+  // Institution Profile, Signatories & Reports (Part A & C)
+  updateInstitutionProfile: (patch: Partial<InstitutionProfile>) => void;
+  addSignatory: (sig: Omit<Signatory, "id" | "org_id" | "updated_at">) => { success: boolean; error?: string };
+  editSignatory: (id: string, patch: Partial<Signatory>) => { success: boolean; error?: string };
+  deleteSignatory: (id: string) => void;
+  toggleSignatoryActive: (id: string) => { success: boolean; error?: string };
+  updateSignatureSlots: (slots: SignatureSlotConfig) => void;
+  createReportExport: (exp: ReportExport) => void;
+  revokeReportExport: (id: string, reason: string) => void;
+  extendReportExport: (id: string, newExpiry: string) => void;
 }
 
 // Initial hydration
@@ -277,6 +448,10 @@ export const useKhazna = create<KhaznaState>((set, get) => {
       notices: patch?.notices ?? cur.notices,
       meStudentId: patch?.meStudentId ?? cur.meStudentId,
       managerSector: patch?.managerSector ?? cur.managerSector,
+      institutionProfile: patch?.institutionProfile ?? cur.institutionProfile,
+      signatories: patch?.signatories ?? cur.signatories,
+      signatureSlots: patch?.signatureSlots ?? cur.signatureSlots,
+      reportExports: patch?.reportExports ?? cur.reportExports,
     };
     saveOrgData(data);
   };
@@ -738,6 +913,187 @@ export const useKhazna = create<KhaznaState>((set, get) => {
       const nextNotices = get().notices.map((n) => ({ ...n, read: true }));
       set({ notices: nextNotices });
       persist({ notices: nextNotices });
+    },
+
+    updateInstitutionProfile: (patch) => {
+      const cur = get().institutionProfile;
+      const nextProfile: InstitutionProfile = {
+        ...cur,
+        ...patch,
+        updated_at: nowIso(),
+        updated_by: get().college.adminName,
+      };
+      set({ institutionProfile: nextProfile });
+      get().log({
+        actor: get().college.adminName,
+        role: "admin",
+        action: "UPDATE_INSTITUTION_PROFILE",
+        target: nextProfile.name,
+        details: "Institution profile updated",
+      });
+      persist({ institutionProfile: nextProfile });
+    },
+
+    addSignatory: (sig) => {
+      const check = checkSignatoryUniqueness(get().signatories, sig);
+      if (!check.valid) {
+        return { success: false, error: check.error };
+      }
+      const newSig: Signatory = {
+        ...sig,
+        id: uid("SIG_"),
+        org_id: get().college.id,
+        signature_version: 1,
+        updated_at: nowIso(),
+        updated_by: get().college.adminName,
+      };
+      const nextSignatories = [...get().signatories, newSig];
+      set({ signatories: nextSignatories });
+      get().log({
+        actor: get().college.adminName,
+        role: "admin",
+        action: "ADD_SIGNATORY",
+        target: `${newSig.full_name} (${newSig.role})`,
+        details: `Added signatory ${newSig.designation}`,
+      });
+      persist({ signatories: nextSignatories });
+      return { success: true };
+    },
+
+    editSignatory: (id, patch) => {
+      const cur = get().signatories.find((s) => s.id === id);
+      if (!cur) return { success: false, error: "Signatory not found" };
+
+      const candidate = {
+        id,
+        role: patch.role ?? cur.role,
+        sector_id: patch.sector_id !== undefined ? patch.sector_id : cur.sector_id,
+        class_id: patch.class_id !== undefined ? patch.class_id : cur.class_id,
+        active: patch.active !== undefined ? patch.active : cur.active,
+      };
+      const check = checkSignatoryUniqueness(get().signatories, candidate);
+      if (!check.valid) {
+        return { success: false, error: check.error };
+      }
+
+      const nextSignatories = get().signatories.map((s) => {
+        if (s.id !== id) return s;
+        const sigVersion =
+          patch.signature_path && patch.signature_path !== s.signature_path
+            ? s.signature_version + 1
+            : s.signature_version;
+        return {
+          ...s,
+          ...patch,
+          signature_version: sigVersion,
+          updated_at: nowIso(),
+          updated_by: get().college.adminName,
+        };
+      });
+      set({ signatories: nextSignatories });
+      get().log({
+        actor: get().college.adminName,
+        role: "admin",
+        action: "EDIT_SIGNATORY",
+        target: cur.full_name,
+        details: `Updated signatory details`,
+      });
+      persist({ signatories: nextSignatories });
+      return { success: true };
+    },
+
+    deleteSignatory: (id) => {
+      const cur = get().signatories.find((s) => s.id === id);
+      const nextSignatories = get().signatories.filter((s) => s.id !== id);
+      set({ signatories: nextSignatories });
+      if (cur) {
+        get().log({
+          actor: get().college.adminName,
+          role: "admin",
+          action: "DELETE_SIGNATORY",
+          target: cur.full_name,
+          details: `Deleted signatory ${cur.designation}`,
+        });
+      }
+      persist({ signatories: nextSignatories });
+    },
+
+    toggleSignatoryActive: (id) => {
+      const cur = get().signatories.find((s) => s.id === id);
+      if (!cur) return { success: false, error: "Signatory not found" };
+
+      const targetActive = !cur.active;
+      if (targetActive) {
+        const check = checkSignatoryUniqueness(get().signatories, {
+          id,
+          role: cur.role,
+          sector_id: cur.sector_id,
+          class_id: cur.class_id,
+          active: true,
+        });
+        if (!check.valid) {
+          return { success: false, error: check.error };
+        }
+      }
+
+      const nextSignatories = get().signatories.map((s) =>
+        s.id === id ? { ...s, active: targetActive, updated_at: nowIso(), updated_by: get().college.adminName } : s
+      );
+      set({ signatories: nextSignatories });
+      persist({ signatories: nextSignatories });
+      return { success: true };
+    },
+
+    updateSignatureSlots: (slots) => {
+      set({ signatureSlots: slots });
+      persist({ signatureSlots: slots });
+    },
+
+    createReportExport: (exp) => {
+      const nextExports = [exp, ...get().reportExports.filter((r) => r.id !== exp.id)];
+      set({ reportExports: nextExports });
+      get().log({
+        actor: get().college.adminName,
+        role: "admin",
+        action: "EXPORT",
+        target: exp.ref,
+        details: `Issued verified report for ${exp.sector_id} (${exp.mode}) with QR verification`,
+      });
+      persist({ reportExports: nextExports });
+    },
+
+    revokeReportExport: (id, reason) => {
+      const exp = get().reportExports.find((r) => r.id === id || r.token === id || r.ref === id);
+      if (!exp) return;
+      const nextExports = get().reportExports.map((r) =>
+        r.id === exp.id
+          ? { ...r, revoked_at: nowIso(), revoked_by: get().college.adminName }
+          : r
+      );
+      set({ reportExports: nextExports });
+      get().log({
+        actor: get().college.adminName,
+        role: "admin",
+        action: "REVOKE_REPORT",
+        target: exp.ref,
+        details: `Revoked report QR verification. Reason: ${reason || "Revoked by admin"}`,
+      });
+      persist({ reportExports: nextExports });
+    },
+
+    extendReportExport: (id, newExpiry) => {
+      const nextExports = get().reportExports.map((r) =>
+        r.id === id ? { ...r, expires_at: newExpiry } : r
+      );
+      set({ reportExports: nextExports });
+      get().log({
+        actor: get().college.adminName,
+        role: "admin",
+        action: "EXTEND_REPORT",
+        target: id,
+        details: `Extended report expiry to ${newExpiry}`,
+      });
+      persist({ reportExports: nextExports });
     },
   };
 });

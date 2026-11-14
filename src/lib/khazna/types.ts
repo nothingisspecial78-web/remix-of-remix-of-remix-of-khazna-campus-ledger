@@ -92,7 +92,98 @@ export type AuditAction =
   | "EDIT_CLASS"
   | "DELETE_CLASS"
   | "SIGN_UP"
-  | "EXPORT";
+  | "EXPORT"
+  | "UPDATE_INSTITUTION_PROFILE"
+  | "ADD_SIGNATORY"
+  | "EDIT_SIGNATORY"
+  | "DELETE_SIGNATORY"
+  | "REVOKE_REPORT"
+  | "EXTEND_REPORT";
+
+export interface InstitutionProfile {
+  name: string;
+  short_name?: string;
+  tagline?: string;
+  reg_no?: string;
+  established_year?: string;
+  address_line1?: string;
+  address_line2?: string;
+  city?: string;
+  district?: string;
+  state?: string;
+  pincode?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  logo_path?: string;
+  logo_version: number;
+  seal_path?: string;
+  seal_version: number;
+  verify_expiry: "never" | "1y" | "90d";
+  verify_mask_names: boolean;
+  updated_by?: string;
+  updated_at?: string;
+}
+
+export type SignatoryRole =
+  | "principal"
+  | "accounts_officer"
+  | "hod"
+  | "sector_manager"
+  | "class_teacher"
+  | "other";
+
+export interface Signatory {
+  id: string;
+  org_id: string;
+  full_name: string;
+  designation: string;
+  role: SignatoryRole;
+  sector_id?: string;
+  class_id?: string;
+  signature_path?: string;
+  signature_version: number;
+  active: boolean;
+  authorised_at?: string;
+  authorised_by?: string;
+  updated_by?: string;
+  updated_at?: string;
+}
+
+export interface SignatureSlotConfig {
+  slot1: { label: string; role: SignatoryRole };
+  slot2: { label: string; role: SignatoryRole };
+  slot3: { label: string; role: SignatoryRole };
+}
+
+export interface ReportExport {
+  id: string;
+  org_id: string;
+  sector_id: string;
+  class_id?: string | null;
+  ref: string;
+  token: string;
+  storage_path: string;
+  sha256: string;
+  mode: "debit" | "credit" | "all";
+  period_from: string;
+  period_to: string;
+  student_count: number;
+  totals: {
+    credit: number;
+    debit: number;
+    net: number;
+  };
+  names_masked: boolean;
+  pdf_base64?: string; // Cache data URL for instant client offline access / preview
+  generated_by: string;
+  generated_at: string;
+  expires_at?: string | null;
+  revoked_at?: string | null;
+  revoked_by?: string | null;
+  view_count: number;
+  last_viewed_at?: string | null;
+}
 
 export interface AuditEntry {
   id: string;

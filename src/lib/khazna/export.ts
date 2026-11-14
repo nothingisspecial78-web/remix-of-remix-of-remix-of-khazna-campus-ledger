@@ -54,7 +54,7 @@ export function downloadExcelReport(opts: ExportReportOptions) {
   const headers = ["#", "Adm. No", "Student Name", "Class"];
   if (contentFilter !== "debit") headers.push("Credit (₹)");
   if (contentFilter !== "credit") headers.push("Debit (₹)");
-  headers.push("Net Balance (₹)");
+  if (contentFilter === "all") headers.push("Net Balance (₹)");
   aoa.push(headers);
 
   // Data rows
@@ -62,7 +62,7 @@ export function downloadExcelReport(opts: ExportReportOptions) {
     const row: (string | number)[] = [idx + 1, r.studentId, r.studentName, r.className];
     if (contentFilter !== "debit") row.push(r.credit);
     if (contentFilter !== "credit") row.push(r.debit);
-    row.push(r.balance);
+    if (contentFilter === "all") row.push(r.balance);
     aoa.push(row);
   });
 
@@ -70,7 +70,7 @@ export function downloadExcelReport(opts: ExportReportOptions) {
   const totalsRow: (string | number)[] = ["TOTAL", "", "", `Count: ${rows.length}`];
   if (contentFilter !== "debit") totalsRow.push(totals.credit);
   if (contentFilter !== "credit") totalsRow.push(totals.debit);
-  totalsRow.push(totals.balance);
+  if (contentFilter === "all") totalsRow.push(totals.balance);
   aoa.push(totalsRow);
 
   // Create workbook and worksheet
@@ -127,21 +127,21 @@ export function downloadCSVReport(opts: ExportReportOptions) {
   const headers = ["#", "Admission No", "Student Name", "Class"];
   if (contentFilter !== "debit") headers.push("Total Credit");
   if (contentFilter !== "credit") headers.push("Total Debit");
-  headers.push("Net Balance");
+  if (contentFilter === "all") headers.push("Net Balance");
   lines.push(headers.map(escapeCell).join(","));
 
   rows.forEach((r, idx) => {
     const row: (string | number)[] = [idx + 1, r.studentId, r.studentName, r.className];
     if (contentFilter !== "debit") row.push(r.credit);
     if (contentFilter !== "credit") row.push(r.debit);
-    row.push(r.balance);
+    if (contentFilter === "all") row.push(r.balance);
     lines.push(row.map(escapeCell).join(","));
   });
 
   const totalsRow: (string | number)[] = ["TOTAL", "", "", `Count: ${rows.length}`];
   if (contentFilter !== "debit") totalsRow.push(totals.credit);
   if (contentFilter !== "credit") totalsRow.push(totals.debit);
-  totalsRow.push(totals.balance);
+  if (contentFilter === "all") totalsRow.push(totals.balance);
   lines.push(totalsRow.map(escapeCell).join(","));
 
   // Prepend UTF-8 BOM (\uFEFF)

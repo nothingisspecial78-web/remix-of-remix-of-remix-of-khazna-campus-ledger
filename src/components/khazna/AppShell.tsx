@@ -7,6 +7,7 @@ import {
   Bell,
   Check,
   ChevronDown,
+  FileCheck,
   FileSpreadsheet,
   GraduationCap,
   Layers,
@@ -73,6 +74,7 @@ function useNav(role: Role, sectorSlug: SectorSlug): { title: string; items: Nav
         items: [
           { label: "Dashboard", icon: LayoutDashboard, render: (p) => <Link to="/admin" activeOptions={{ exact: true }} {...p} /> },
           { label: "Audit Log", icon: ScrollText, render: (p) => <Link to="/admin/audit" {...p} /> },
+          { label: "Issued Reports", icon: FileCheck, render: (p) => <Link to="/admin/issued-reports" {...p} /> },
         ],
       },
       {
@@ -83,7 +85,13 @@ function useNav(role: Role, sectorSlug: SectorSlug): { title: string; items: Nav
           { label: "Admins", icon: UserCog, render: (p) => <Link to="/admin/admins" {...p} /> },
         ],
       },
-      { title: "Structure", items: [{ label: "Sectors & Classes", icon: Layers, render: (p) => <Link to="/admin/sectors" {...p} /> }] },
+      {
+        title: "Structure",
+        items: [
+          { label: "Institution Profile", icon: Building2, render: (p) => <Link to="/admin/institution" {...p} /> },
+          { label: "Sectors & Classes", icon: Layers, render: (p) => <Link to="/admin/sectors" {...p} /> },
+        ],
+      },
     ];
   }
   if (role === "manager") {

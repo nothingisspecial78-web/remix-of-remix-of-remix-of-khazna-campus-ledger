@@ -7,6 +7,7 @@ import {
   Building2,
   Check,
   ChevronRight,
+  FileCheck,
   FileSpreadsheet,
   GraduationCap,
   Layers,
@@ -286,6 +287,13 @@ export function AestheticMenu({
                         isActive={pathname.includes("/admin/audit")}
                         onSelect={() => onOpenChange(false)}
                       />
+                      <MenuItemLink
+                        to="/admin/issued-reports"
+                        icon={FileCheck}
+                        label="Issued Reports"
+                        isActive={pathname.includes("/admin/issued-reports")}
+                        onSelect={() => onOpenChange(false)}
+                      />
                     </div>
                   </div>
 
@@ -323,6 +331,13 @@ export function AestheticMenu({
                       Structure
                     </div>
                     <div className="space-y-1">
+                      <MenuItemLink
+                        to="/admin/institution"
+                        icon={Building2}
+                        label="Institution Profile"
+                        isActive={pathname.includes("/admin/institution")}
+                        onSelect={() => onOpenChange(false)}
+                      />
                       <MenuItemLink
                         to="/admin/sectors"
                         icon={Layers}

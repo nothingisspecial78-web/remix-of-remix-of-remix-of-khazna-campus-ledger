@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useLocation,
   HeadContent,
   Scripts,
   type ErrorComponentProps,
@@ -122,7 +123,7 @@ function RootShell({ children }: { children: ReactNode }) {
         <HeadContent />
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('khazna-theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark');}}catch(e){}})();`,
+            __html: `(function(){try{var p=window.location.pathname;if(p&&p.indexOf('/v/')===0){var el=document.getElementById('khazna-fast-splash');if(el)el.style.display='none';}var t=localStorage.getItem('khazna-theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark');}}catch(e){}})();`,
           }}
         />
       </head>
@@ -218,10 +219,16 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const { pathname } = useLocation();
+  const isVerificationRoute = pathname.startsWith("/v/");
 
   useEffect(() => {
     const splash = document.getElementById("khazna-fast-splash");
     if (splash) {
+      if (isVerificationRoute) {
+        splash.remove();
+        return;
+      }
       const timer = setTimeout(() => {
         splash.style.opacity = "0";
         splash.style.pointerEvents = "none";
@@ -231,7 +238,15 @@ function RootComponent() {
       }, 950);
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [isVerificationRoute]);
+
+  if (isVerificationRoute) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <Outlet />
+      </QueryClientProvider>
+    );
+  }
 
   return (
     <QueryClientProvider client={queryClient}>

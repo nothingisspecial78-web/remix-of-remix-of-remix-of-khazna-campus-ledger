@@ -82,4 +82,71 @@ describe("student account actions", () => {
     useKhazna.getState().setCurrentRole("manager");
     expect(useKhazna.getState().currentRole).toBe("manager");
   });
+
+  it("handles institution profile updates and audit logging", () => {
+    const st = useKhazna.getState();
+    expect(st.institutionProfile.name).toBe("Islahul Uloom Arabic College");
+    st.updateInstitutionProfile({ short_name: "IUAC-EDIT" });
+    expect(useKhazna.getState().institutionProfile.short_name).toBe("IUAC-EDIT");
+  });
+
+  it("enforces signatory uniqueness (only 1 active per role and scope)", () => {
+    const st = useKhazna.getState();
+    // Try adding another active principal when one already exists
+    const res = st.addSignatory({
+      full_name: "Another Principal",
+      designation: "Acting Principal",
+      role: "principal",
+      active: true,
+      signature_version: 1,
+      authorised_at: "2026-11-14T00:00:00.000Z",
+      authorised_by: "Admin",
+    });
+    expect(res.success).toBe(false);
+    expect(res.error).toMatch(/already exists for role "principal"/);
+
+    // Can add if inactive
+    const resInactive = st.addSignatory({
+      full_name: "Future Principal",
+      designation: "Designate",
+      role: "principal",
+      active: false,
+      signature_version: 1,
+      authorised_at: "2026-11-14T00:00:00.000Z",
+      authorised_by: "Admin",
+    });
+    expect(resInactive.success).toBe(true);
+  });
+
+  it("handles report export creation and instant revocation", () => {
+    const st = useKhazna.getState();
+    const token = "test_rand_token_128bit";
+    st.createReportExport({
+      id: "rep_test_1",
+      org_id: st.college.id,
+      sector_id: "fiqh",
+      ref: "KHZ-FQ2-20261114-001",
+      token,
+      storage_path: `org/${st.college.id}/rep_test_1.pdf`,
+      sha256: "abc123sha256hash",
+      mode: "all",
+      period_from: "2026-07-15",
+      period_to: "2026-11-12",
+      student_count: 15,
+      totals: { credit: 132150, debit: 80550, net: 51600 },
+      names_masked: false,
+      generated_by: "Admin",
+      generated_at: new Date().toISOString(),
+      view_count: 0,
+    });
+
+    const exp = useKhazna.getState().reportExports.find((r) => r.token === token);
+    expect(exp).toBeDefined();
+    expect(exp?.ref).toBe("KHZ-FQ2-20261114-001");
+    expect(exp?.revoked_at).toBeFalsy();
+
+    st.revokeReportExport("rep_test_1", "Testing revocation safety valve");
+    const revoked = useKhazna.getState().reportExports.find((r) => r.token === token);
+    expect(revoked?.revoked_at).toBeTruthy();
+  });
 });

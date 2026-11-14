@@ -16,11 +16,14 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminAdminsRouteImport } from './routes/admin.admins'
 import { Route as AdminAuditRouteImport } from './routes/admin.audit'
+import { Route as AdminInstitutionRouteImport } from './routes/admin.institution'
+import { Route as AdminIssuedReportsRouteImport } from './routes/admin.issued-reports'
 import { Route as AdminSectorsRouteImport } from './routes/admin.sectors'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppNotificationsRouteImport } from './routes/app.notifications'
 import { Route as AppProfileRouteImport } from './routes/app.profile'
 import { Route as MSectorSlugRouteImport } from './routes/m.$sectorSlug'
+import { Route as VTokenRouteImport } from './routes/v.$token'
 import { Route as AdminStudentsIndexRouteImport } from './routes/admin.students.index'
 import { Route as AdminStudentsImportRouteImport } from './routes/admin.students.import'
 import { Route as AppSSectorSlugRouteImport } from './routes/app.s.$sectorSlug'
@@ -65,6 +68,16 @@ const AdminAuditRoute = AdminAuditRouteImport.update({
   path: '/audit',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminInstitutionRoute = AdminInstitutionRouteImport.update({
+  id: '/institution',
+  path: '/institution',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminIssuedReportsRoute = AdminIssuedReportsRouteImport.update({
+  id: '/issued-reports',
+  path: '/issued-reports',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminSectorsRoute = AdminSectorsRouteImport.update({
   id: '/sectors',
   path: '/sectors',
@@ -88,6 +101,11 @@ const AppProfileRoute = AppProfileRouteImport.update({
 const MSectorSlugRoute = MSectorSlugRouteImport.update({
   id: '/m/$sectorSlug',
   path: '/m/$sectorSlug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VTokenRoute = VTokenRouteImport.update({
+  id: '/v/$token',
+  path: '/v/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminStudentsIndexRoute = AdminStudentsIndexRouteImport.update({
@@ -138,10 +156,13 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/admin/admins': typeof AdminAdminsRoute
   '/admin/audit': typeof AdminAuditRoute
+  '/admin/institution': typeof AdminInstitutionRoute
+  '/admin/issued-reports': typeof AdminIssuedReportsRoute
   '/admin/sectors': typeof AdminSectorsRoute
   '/app/notifications': typeof AppNotificationsRoute
   '/app/profile': typeof AppProfileRoute
   '/m/$sectorSlug': typeof MSectorSlugRouteWithChildren
+  '/v/$token': typeof VTokenRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
   '/admin/students/import': typeof AdminStudentsImportRoute
@@ -158,9 +179,12 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/admin/admins': typeof AdminAdminsRoute
   '/admin/audit': typeof AdminAuditRoute
+  '/admin/institution': typeof AdminInstitutionRoute
+  '/admin/issued-reports': typeof AdminIssuedReportsRoute
   '/admin/sectors': typeof AdminSectorsRoute
   '/app/notifications': typeof AppNotificationsRoute
   '/app/profile': typeof AppProfileRoute
+  '/v/$token': typeof VTokenRoute
   '/admin': typeof AdminIndexRoute
   '/app': typeof AppIndexRoute
   '/admin/students/import': typeof AdminStudentsImportRoute
@@ -180,10 +204,13 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/admin/admins': typeof AdminAdminsRoute
   '/admin/audit': typeof AdminAuditRoute
+  '/admin/institution': typeof AdminInstitutionRoute
+  '/admin/issued-reports': typeof AdminIssuedReportsRoute
   '/admin/sectors': typeof AdminSectorsRoute
   '/app/notifications': typeof AppNotificationsRoute
   '/app/profile': typeof AppProfileRoute
   '/m/$sectorSlug': typeof MSectorSlugRouteWithChildren
+  '/v/$token': typeof VTokenRoute
   '/admin/': typeof AdminIndexRoute
   '/app/': typeof AppIndexRoute
   '/admin/students/import': typeof AdminStudentsImportRoute
@@ -204,10 +231,13 @@ export interface FileRouteTypes {
     | '/login'
     | '/admin/admins'
     | '/admin/audit'
+    | '/admin/institution'
+    | '/admin/issued-reports'
     | '/admin/sectors'
     | '/app/notifications'
     | '/app/profile'
     | '/m/$sectorSlug'
+    | '/v/$token'
     | '/admin/'
     | '/app/'
     | '/admin/students/import'
@@ -224,9 +254,12 @@ export interface FileRouteTypes {
     | '/login'
     | '/admin/admins'
     | '/admin/audit'
+    | '/admin/institution'
+    | '/admin/issued-reports'
     | '/admin/sectors'
     | '/app/notifications'
     | '/app/profile'
+    | '/v/$token'
     | '/admin'
     | '/app'
     | '/admin/students/import'
@@ -245,10 +278,13 @@ export interface FileRouteTypes {
     | '/login'
     | '/admin/admins'
     | '/admin/audit'
+    | '/admin/institution'
+    | '/admin/issued-reports'
     | '/admin/sectors'
     | '/app/notifications'
     | '/app/profile'
     | '/m/$sectorSlug'
+    | '/v/$token'
     | '/admin/'
     | '/app/'
     | '/admin/students/import'
@@ -267,6 +303,7 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   LoginRoute: typeof LoginRoute
   MSectorSlugRoute: typeof MSectorSlugRouteWithChildren
+  VTokenRoute: typeof VTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -320,6 +357,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAuditRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/institution': {
+      id: '/admin/institution'
+      path: '/institution'
+      fullPath: '/admin/institution'
+      preLoaderRoute: typeof AdminInstitutionRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/issued-reports': {
+      id: '/admin/issued-reports'
+      path: '/issued-reports'
+      fullPath: '/admin/issued-reports'
+      preLoaderRoute: typeof AdminIssuedReportsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/sectors': {
       id: '/admin/sectors'
       path: '/sectors'
@@ -353,6 +404,13 @@ declare module '@tanstack/react-router' {
       path: '/m/$sectorSlug'
       fullPath: '/m/$sectorSlug'
       preLoaderRoute: typeof MSectorSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/v/$token': {
+      id: '/v/$token'
+      path: '/v/$token'
+      fullPath: '/v/$token'
+      preLoaderRoute: typeof VTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/students/': {
@@ -417,6 +475,8 @@ declare module '@tanstack/react-router' {
 interface AdminRouteChildren {
   AdminAdminsRoute: typeof AdminAdminsRoute
   AdminAuditRoute: typeof AdminAuditRoute
+  AdminInstitutionRoute: typeof AdminInstitutionRoute
+  AdminIssuedReportsRoute: typeof AdminIssuedReportsRoute
   AdminSectorsRoute: typeof AdminSectorsRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AdminStudentsImportRoute: typeof AdminStudentsImportRoute
@@ -426,6 +486,8 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAdminsRoute: AdminAdminsRoute,
   AdminAuditRoute: AdminAuditRoute,
+  AdminInstitutionRoute: AdminInstitutionRoute,
+  AdminIssuedReportsRoute: AdminIssuedReportsRoute,
   AdminSectorsRoute: AdminSectorsRoute,
   AdminIndexRoute: AdminIndexRoute,
   AdminStudentsImportRoute: AdminStudentsImportRoute,
@@ -476,6 +538,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   LoginRoute: LoginRoute,
   MSectorSlugRoute: MSectorSlugRouteWithChildren,
+  VTokenRoute: VTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

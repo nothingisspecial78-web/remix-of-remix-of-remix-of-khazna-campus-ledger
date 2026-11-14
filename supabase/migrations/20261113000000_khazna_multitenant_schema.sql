@@ -56,6 +56,11 @@ create table if not exists public.students (
     primary key(org_id, id)
 );
 
+-- Ensure multi-tenant columns exist if students table already existed
+alter table public.students add column if not exists org_id text references public.organizations(id) on delete cascade;
+alter table public.students add column if not exists guardian text default '—';
+alter table public.students add column if not exists joined date default current_date;
+
 -- 5. MANAGERS / ADMINS (Role Assignments per Organization)
 create table if not exists public.managers (
     id text not null,
@@ -163,33 +168,43 @@ alter table public.audit_logs enable row level security;
 alter table public.notices enable row level security;
 
 -- Public read/write policies for authenticated or anon with org filter
+drop policy if exists "Allow org-scoped select on organizations" on public.organizations;
 create policy "Allow org-scoped select on organizations" on public.organizations
     for select using (true);
 
+drop policy if exists "Allow org-scoped insert on organizations" on public.organizations;
 create policy "Allow org-scoped insert on organizations" on public.organizations
     for insert with check (true);
 
+drop policy if exists "Allow access to sectors" on public.sectors;
 create policy "Allow access to sectors" on public.sectors
     for all using (true) with check (true);
 
+drop policy if exists "Allow access to classes" on public.classes;
 create policy "Allow access to classes" on public.classes
     for all using (true) with check (true);
 
+drop policy if exists "Allow access to students" on public.students;
 create policy "Allow access to students" on public.students
     for all using (true) with check (true);
 
+drop policy if exists "Allow access to managers" on public.managers;
 create policy "Allow access to managers" on public.managers
     for all using (true) with check (true);
 
+drop policy if exists "Allow access to transactions" on public.transactions;
 create policy "Allow access to transactions" on public.transactions
     for all using (true) with check (true);
 
+drop policy if exists "Allow access to batches" on public.batches;
 create policy "Allow access to batches" on public.batches
     for all using (true) with check (true);
 
+drop policy if exists "Allow access to audit_logs" on public.audit_logs;
 create policy "Allow access to audit_logs" on public.audit_logs
     for all using (true) with check (true);
 
+drop policy if exists "Allow access to notices" on public.notices;
 create policy "Allow access to notices" on public.notices
     for all using (true) with check (true);
 

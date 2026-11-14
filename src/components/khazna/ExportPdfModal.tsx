@@ -8,6 +8,9 @@ import {
   SlidersHorizontal,
   CheckCircle2,
   FileCheck2,
+  QrCode,
+  ShieldCheck,
+  PenTool,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Btn } from "./btn";
@@ -19,6 +22,7 @@ import {
   type StudentReportItem,
 } from "@/lib/khazna/pdf-report";
 import { formatDate } from "@/lib/khazna/format";
+import { useKhazna } from "@/lib/khazna/store";
 
 const STORAGE_PDF_KEY = "khazna_pdf_report_options_v1";
 
@@ -45,13 +49,24 @@ export function ExportPdfModal({
   initialTo,
   allItems,
 }: ExportPdfModalProps) {
+  // Store state for institution assets and verification snapshots
+  const institutionProfile = useKhazna((s) => s.institutionProfile);
+  const signatories = useKhazna((s) => s.signatories);
+  const signatureSlots = useKhazna((s) => s.signatureSlots);
+  const reportExports = useKhazna((s) => s.reportExports);
+  const createReportExport = useKhazna((s) => s.createReportExport);
+
   // Load saved options from localStorage with defaults
   const [cls, setCls] = useState(initialClass || "all");
   const [from, setFrom] = useState(initialFrom);
   const [to, setTo] = useState(initialTo);
   const [contentFilter, setContentFilter] = useState<"all" | "credit" | "debit">("all");
   const [sortBy, setSortBy] = useState<PdfReportOptions["sortBy"]>("adm_asc");
+  const [signatureMode, setSignatureMode] = useState<"digital" | "blank" | "hidden">("digital");
   const [showSummaryCards, setShowSummaryCards] = useState(true);
+  const [showDistributionBar, setShowDistributionBar] = useState(true);
+  const [showSeal, setShowSeal] = useState(true);
+  const [qrVerification, setQrVerification] = useState(true);
   const [showNetBalance, setShowNetBalance] = useState(true);
   const [showSignatureLines, setShowSignatureLines] = useState(true);
   const [showPageNumbers, setShowPageNumbers] = useState(true);
@@ -70,7 +85,11 @@ export function ExportPdfModal({
           const parsed = JSON.parse(saved);
           if (parsed.contentFilter) setContentFilter(parsed.contentFilter);
           if (parsed.sortBy) setSortBy(parsed.sortBy);
+          if (parsed.signatureMode) setSignatureMode(parsed.signatureMode);
           if (typeof parsed.showSummaryCards === "boolean") setShowSummaryCards(parsed.showSummaryCards);
+          if (typeof parsed.showDistributionBar === "boolean") setShowDistributionBar(parsed.showDistributionBar);
+          if (typeof parsed.showSeal === "boolean") setShowSeal(parsed.showSeal);
+          if (typeof parsed.qrVerification === "boolean") setQrVerification(parsed.qrVerification);
           if (typeof parsed.showNetBalance === "boolean") setShowNetBalance(parsed.showNetBalance);
           if (typeof parsed.showSignatureLines === "boolean") setShowSignatureLines(parsed.showSignatureLines);
           if (typeof parsed.showPageNumbers === "boolean") setShowPageNumbers(parsed.showPageNumbers);
@@ -108,7 +127,11 @@ export function ExportPdfModal({
         JSON.stringify({
           contentFilter,
           sortBy,
+          signatureMode,
           showSummaryCards,
+          showDistributionBar,
+          showSeal,
+          qrVerification,
           showNetBalance,
           showSignatureLines,
           showPageNumbers,
@@ -131,6 +154,15 @@ export function ExportPdfModal({
         showSignatureLines,
         showPageNumbers,
         orientation,
+        institutionProfile,
+        signatories,
+        signatureSlots,
+        signatureMode,
+        showSeal,
+        showDistributionBar,
+        qrVerification,
+        existingReports: reportExports,
+        onExportRecorded: createReportExport,
         items: filteredItems,
       });
 
@@ -263,6 +295,23 @@ export function ExportPdfModal({
           </div>
         </Field>
 
+        {/* Signatures Mode */}
+        <div>
+          <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
+            Signatures Option
+          </label>
+          <Segmented
+            className="w-full justify-between"
+            value={signatureMode}
+            onChange={(v) => setSignatureMode(v as any)}
+            options={[
+              { value: "digital", label: "Digital signatures" },
+              { value: "blank", label: "Blank lines" },
+              { value: "hidden", label: "Hidden" },
+            ]}
+          />
+        </div>
+
         {/* Page Orientation */}
         <div>
           <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
@@ -282,9 +331,27 @@ export function ExportPdfModal({
         {/* Extras Toggles */}
         <div className="rounded-xl border border-hairline bg-accent/40 p-3 space-y-2.5">
           <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            <SlidersHorizontal className="size-3.5" /> Extras & Layout Options
+            <SlidersHorizontal className="size-3.5" /> Extras & Security Toggles
           </div>
-          <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="grid grid-cols-2 gap-2.5 text-xs">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                className="rounded border-gray-300 text-primary focus:ring-primary size-4"
+                checked={qrVerification}
+                onChange={(e) => setQrVerification(e.target.checked)}
+              />
+              <span className="font-medium text-foreground">Verification QR (Default ON)</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                className="rounded border-gray-300 text-primary focus:ring-primary size-4"
+                checked={showSeal}
+                onChange={(e) => setShowSeal(e.target.checked)}
+              />
+              <span>Official Seal Stamp</span>
+            </label>
             <label className="flex items-center gap-2 cursor-pointer select-none">
               <input
                 type="checkbox"
@@ -292,26 +359,28 @@ export function ExportPdfModal({
                 checked={showSummaryCards}
                 onChange={(e) => setShowSummaryCards(e.target.checked)}
               />
-              <span>Summary Cards</span>
+              <span>Summary KPI Cards</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer select-none">
               <input
                 type="checkbox"
                 className="rounded border-gray-300 text-primary focus:ring-primary size-4"
-                checked={showNetBalance}
-                onChange={(e) => setShowNetBalance(e.target.checked)}
+                checked={showDistributionBar}
+                onChange={(e) => setShowDistributionBar(e.target.checked)}
               />
-              <span>Net Balance Column</span>
+              <span>Distribution Bar</span>
             </label>
-            <label className="flex items-center gap-2 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                className="rounded border-gray-300 text-primary focus:ring-primary size-4"
-                checked={showSignatureLines}
-                onChange={(e) => setShowSignatureLines(e.target.checked)}
-              />
-              <span>Signature Lines</span>
-            </label>
+            {contentFilter === "all" && (
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  className="rounded border-gray-300 text-primary focus:ring-primary size-4"
+                  checked={showNetBalance}
+                  onChange={(e) => setShowNetBalance(e.target.checked)}
+                />
+                <span>Net Balance Column</span>
+              </label>
+            )}
             <label className="flex items-center gap-2 cursor-pointer select-none">
               <input
                 type="checkbox"
